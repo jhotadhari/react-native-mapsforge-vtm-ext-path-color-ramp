@@ -81,6 +81,11 @@ export type LayerPathColorRampProps = {
 export interface Spec extends TurboModule {
 	createLayer(params: CreateLayerParams): Promise<LayerPathColorRampResponse>;
 	removeLayer(params: RemoveLayerParams): Promise<string>;
+	// Event emission (gesture events from native → JS).
+	// The native side calls emitOnPathEvent(WritableMap) which codegen
+	// translates to the RCTDeviceEventEmitter path.
+	addListener(eventName: string): void;
+	removeListeners(count: number): void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('LayerPathColorRamp');
