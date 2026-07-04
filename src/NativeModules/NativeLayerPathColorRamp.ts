@@ -9,6 +9,10 @@ import type { Position as GeoJsonPosition } from 'geojson';
  * definitions in react-native-mapsforge-vtm (src/NativeModules/NativeLayerPath.ts
  * and src/types.ts). Keep these in sync when the core library's types change.
  *
+ * NOTE: Template literal types like `#${string}` are NOT supported by
+ * react-native-codegen's TS parser. All color fields use plain `string`.
+ * JS-side hooks (colorInterpolation.ts) validate hex format at runtime.
+ *
  * TODO: Once the core library re-exports these from its public API, import
  * them instead of maintaining local copies here.
  */
@@ -24,17 +28,17 @@ export interface ErrorBase {
 /** Mirrors GeometryStyle from react-native-mapsforge-vtm. Keep in sync. */
 export type GeometryStyle = {
 	strokeWidth?: Double;
-	strokeColor?: `#${string}`;
-	fillColor?: `#${string}`;
+	strokeColor?: string;
+	fillColor?: string;
 	fillAlpha?: Double;
 	buffer?: Double;
 	scalingZoomLevel?: Int32;
-	cap?: 'SQUARE' | 'ROUND' | 'BUTT';
+	cap?: string;
 	fixed?: boolean;
 	strokeIncrease?: Double;
 	blur?: Double;
 	stipple?: Int32;
-	stippleColor?: `#${string}`;
+	stippleColor?: string;
 	stippleWidth?: Double;
 	dropDistance?: Double;
 	textureRepeat?: boolean;

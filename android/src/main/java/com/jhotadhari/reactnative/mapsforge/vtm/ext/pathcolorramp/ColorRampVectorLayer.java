@@ -179,12 +179,14 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
      */
     public void releaseColorRampTexture() {
         if (mColorRampTexID != 0) {
-            int[] tex = {mColorRampTexID};
+            int oldId = mColorRampTexID;
+            int[] tex = {oldId};
             gl.deleteTextures(1, tex, 0);
             mColorRampTexID = 0;
-        }
-        if (LineBucket.Renderer.mColorRampTexID == mColorRampTexID) {
-            LineBucket.Renderer.mColorRampTexID = 0;
+            // Clear the static reference only if it still points to OUR texture.
+            if (LineBucket.Renderer.mColorRampTexID == oldId) {
+                LineBucket.Renderer.mColorRampTexID = 0;
+            }
         }
     }
 
@@ -214,11 +216,15 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
                                       Style style,
                                       float[] values) {
 
-        LineBucket ll;
-        if (style.stipple == 0 && style.texture == null)
-            ll = t.buckets.getLineBucket(level);
-        else
-            ll = t.buckets.getLineTexBucket(level);
+        // ── Stippled / textured lines use LineTexBucket which lacks
+        //     a_value / u_colorRamp support. Fall back to standard rendering.
+        if (style.stipple != 0 || style.texture != null) {
+            super.draw(t, level, new org.oscim.layers.vector.geometries.LineDrawable(
+                    line, style));
+            return;
+        }
+
+        LineBucket ll = t.buckets.getLineBucket(level);
         if (ll.line == null) {
             ll.line = LineStyle.builder()
                     .reset()
@@ -264,17 +270,22 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
     }
 
     private static int parseHexColor(@NonNull String hex) {
-        String h = hex;
-        if (h.startsWith("#")) {
-            h = h.substring(1);
+        try {
+            String h = hex;
+            if (h.startsWith("#")) {
+                h = h.substring(1);
+            }
+            if (h.length() == 3) {
+                // Short form: #RGB → #RRGGBB
+                int r = Integer.parseInt(h.substring(0, 1), 16);
+                int g = Integer.parseInt(h.substring(1, 2), 16);
+                int b = Integer.parseInt(h.substring(2, 3), 16);
+                return (0xFF << 24) | (r * 0x11 << 16) | (g * 0x11 << 8) | (b * 0x11);
+            }
+            return (0xFF << 24) | Integer.parseInt(h, 16);
+        } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+            // Malformed hex from JS — fall back to opaque white.
+            return 0xFFFFFFFF;
         }
-        if (h.length() == 3) {
-            // Short form: #RGB → #RRGGBB
-            int r = Integer.parseInt(h.substring(0, 1), 16);
-            int g = Integer.parseInt(h.substring(1, 2), 16);
-            int b = Integer.parseInt(h.substring(2, 3), 16);
-            return (0xFF << 24) | (r * 0x11 << 16) | (g * 0x11 << 8) | (b * 0x11);
-        }
-        return (0xFF << 24) | Integer.parseInt(h, 16);
     }
 }

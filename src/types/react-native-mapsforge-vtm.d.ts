@@ -34,6 +34,5 @@ declare module 'react-native-mapsforge-vtm' {
 		registry: LayerOrderRegistry;
 	}
 
-	const MapHandleContext: Context<MapHandleContextValue>;
-	export default MapHandleContext;
+	export const MapHandleContext: Context<MapHandleContextValue>;
 }

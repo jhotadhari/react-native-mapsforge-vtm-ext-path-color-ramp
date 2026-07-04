@@ -81,7 +81,6 @@ void main() {
     // t=0.5 is safe: 2D texture with height=1 (GLES 2.0 lacks sampler1D).
     vec4 rampColor = texture2D(u_colorRamp, vec2(v_value, 0.5));
 
-    // Multiply ramp color by edge antialiasing.
-    // u_color is still available for tinting/blending if desired.
-    gl_FragColor = rampColor * clamp((1.0 - len) / u_fade, 0.0, 1.0);
+    // Multiply ramp color by u_color (for tinting/fading) and edge antialiasing.
+    gl_FragColor = u_color * rampColor * clamp((1.0 - len) / u_fade, 0.0, 1.0);
 }

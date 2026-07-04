@@ -10,7 +10,8 @@
   "dependencies": {
     "react": "19.2.7",
     "react-native": "0.86.0",
-    "react-native-mapsforge-vtm": ">=0.7.0",
+    "react-native-mapsforge-vtm": "file:.yalc/react-native-mapsforge-vtm",
+    "react-native-mapsforge-vtm-ext-path-color-ramp": "file:.yalc/react-native-mapsforge-vtm-ext-path-color-ramp",
     "react-native-reanimated": ">=3.0.0"
   },
   "devDependencies": {

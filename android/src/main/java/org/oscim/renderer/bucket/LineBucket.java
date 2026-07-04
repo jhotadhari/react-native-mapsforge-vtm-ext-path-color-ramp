@@ -638,7 +638,11 @@ public class LineBucket extends RenderBucket {
         @Override
         public boolean useProgram() {
             if (super.useProgram()) {
-                GLState.enableVertexArrays(aPos, aValue, GLState.DISABLED);
+                if (aValue >= 0) {
+                    GLState.enableVertexArrays(aPos, aValue, GLState.DISABLED);
+                } else {
+                    GLState.enableVertexArrays(aPos, GLState.DISABLED);
+                }
                 return true;
             }
             return false;
@@ -665,13 +669,30 @@ public class LineBucket extends RenderBucket {
         public static int mTexID;
         // ── Color-ramp state ──
         public static int mColorRampTexID;
-        private static Shader[] shaders = {null, null};
+        // Default 1×1 white texture bound when no color ramp is set,
+        // so the value shader's u_colorRamp sample returns white (1,1,1,1)
+        // and gl_FragColor depends solely on u_color (matching original behavior).
+        private static int mDefaultRampTexID;
+        // Two shader sets: original (no value) + color-ramp (with a_value / u_colorRamp).
+        private static Shader[] valueShaders = {null, null};
+        private static Shader[] originalShaders = {null, null};
 
         static boolean init() {
 
+            // ── Load original shaders (still needed for non-color-ramp lines) ──
+            originalShaders[0] = new Shader("line_aa_proj");
+            originalShaders[1] = new Shader("line_aa");
+
             // ── Load custom color-ramp shaders ──
-            shaders[0] = new Shader("line_aa_proj_value");
-            shaders[1] = new Shader("line_aa_value");
+            valueShaders[0] = new Shader("line_aa_proj_value");
+            valueShaders[1] = new Shader("line_aa_value");
+
+            // ── Default 1×1 white ramp texture ──
+            byte[] whitePixel = {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF};
+            mDefaultRampTexID = GLUtils.loadTexture(whitePixel, 1, 1, GL.RGBA,
+                    GL.NEAREST, GL.NEAREST,
+                    GL.CLAMP_TO_EDGE,
+                    GL.CLAMP_TO_EDGE);
 
             /* create lookup table as texture for 'length(0..1,0..1)'
              * using mirrored wrap mode for 'length(-1..1,-1..1)' */
@@ -702,7 +723,10 @@ public class LineBucket extends RenderBucket {
              * account. only used when tilt is 0. */
             int mode = v.pos.tilt < 1 ? 1 : 0;
 
-            Shader s = shaders[mode];
+            // ── Select shader set: value shaders only when a color ramp is active ──
+            boolean useValueShaders = (mColorRampTexID != 0);
+            Shader[] activeShaders = useValueShaders ? valueShaders : originalShaders;
+            Shader s = activeShaders[mode];
             s.useProgram();
 
             GLState.blend(true);
@@ -714,8 +738,8 @@ public class LineBucket extends RenderBucket {
             if (!GLAdapter.GDX_DESKTOP_QUIRKS)
                 GLState.bindTex2D(mTexID);
 
-            // ── Bind color-ramp texture at unit 1 ──
-            if (mColorRampTexID != 0) {
+            // ── Bind color-ramp texture at unit 1 (value shaders only) ──
+            if (useValueShaders) {
                 gl.activeTexture(GL.TEXTURE1);
                 gl.bindTexture(GL.TEXTURE_2D, mColorRampTexID);
                 gl.uniform1i(s.uColorRamp, 1);
@@ -729,13 +753,16 @@ public class LineBucket extends RenderBucket {
             int uLineWidth = s.uWidth;
             int uLineHeight = s.uHeight;
 
-            // ── Vertex attrib pointers: 5 shorts per vertex ──
+            // ── Vertex attrib pointers: 5 shorts per vertex (value short is
+            //     ignored by original shaders which only declare a_pos) ──
             // a_pos: 4 shorts = 8 bytes, stride = 10 bytes, offset = 0
             gl.vertexAttribPointer(s.aPos, 4, GL.SHORT, false, 10,
                     buckets.offset[LINE]);
-            // a_value: 1 short = 2 bytes, stride = 10 bytes, offset = 8
-            gl.vertexAttribPointer(s.aValue, 1, GL.SHORT, false, 10,
-                    buckets.offset[LINE] + 8);
+            // a_value: only enabled with value shaders
+            if (useValueShaders) {
+                gl.vertexAttribPointer(s.aValue, 1, GL.SHORT, true, 10,
+                        buckets.offset[LINE] + 8);
+            }
 
             v.mvp.setAsUniform(s.uMVP);
 

@@ -204,71 +204,87 @@ public class ColorRampPathLayerManager extends PathLayerManager {
             @NonNull MapFragment mapFragment,
             @NonNull ContentResolver contentResolver
     ) throws Exception {
-        // ── Update color ramp stops if provided ──
-        if (Utils.rMapHasKey(params, "colorRampStops")) {
-            ReadableArray crArray = params.getArray("colorRampStops");
-            if (crArray != null && crArray.size() >= 2) {
-                String[] colorRampStops = new String[crArray.size()];
-                for (int i = 0; i < crArray.size(); i++) {
-                    colorRampStops[i] = crArray.getString(i);
-                }
-                ColorRampVectorLayer crLayer = (ColorRampVectorLayer)
-                        getSharedLayer(entry.fragmentUuid);
-                if (crLayer != null) {
-                    crLayer.setColorRampStops(colorRampStops);
-                }
-            }
-        }
-
-        // ── Update segment values if provided ──
+        // ── Snapshot the incoming segment values and color-ramp stops ──
+        //     before delegating to the parent (which recreates drawables).
+        float[] segmentValues = null;
         if (Utils.rMapHasKey(params, "segmentValues")) {
             ReadableArray svArray = params.getArray("segmentValues");
             if (svArray != null && svArray.size() > 0) {
-                float[] segmentValues = new float[svArray.size()];
+                segmentValues = new float[svArray.size()];
                 for (int i = 0; i < svArray.size(); i++) {
                     segmentValues[i] = (float) svArray.getDouble(i);
-                }
-                entrySegmentValues.put(entry.pathUuid, segmentValues);
-
-                // Re-register drawables with new values.
-                ColorRampVectorLayer crLayer = (ColorRampVectorLayer)
-                        getSharedLayer(entry.fragmentUuid);
-                if (crLayer != null && !entry.drawables.isEmpty()) {
-                    for (LineDrawable d : entry.drawables) {
-                        crLayer.remove(d);
-                    }
-                    entry.drawables.clear();
-
-                    Style style = getStyleBuilder(
-                            Utils.rMapHasKey(params, "style")
-                                    ? params.getMap("style")
-                                    : null).build();
-
-                    Coordinate[] coords = entry.jtsCoordinates;
-                    for (int i = 0; i < coords.length; i++) {
-                        if (i != 0) {
-                            double[] segment = new double[4];
-                            segment[0] = coords[i].x;
-                            segment[1] = coords[i].y;
-                            segment[2] = coords[i - 1].x;
-                            segment[3] = coords[i - 1].y;
-                            LineDrawable drawable = new LineDrawable(
-                                    segment, style);
-                            drawable.setPriority(entry.positionIndex);
-
-                            float val = (i - 1) < segmentValues.length
-                                    ? segmentValues[i - 1] : 0.5f;
-                            crLayer.addLineDrawableWithValues(drawable,
-                                    new float[]{val});
-                            entry.drawables.add(drawable);
-                        }
-                    }
                 }
             }
         }
 
-        // Delegate to parent for standard coordinate/style update.
-        return super.updateEntry(entry, params, mapFragment, contentResolver);
+        String[] colorRampStops = null;
+        if (Utils.rMapHasKey(params, "colorRampStops")) {
+            ReadableArray crArray = params.getArray("colorRampStops");
+            if (crArray != null && crArray.size() >= 2) {
+                colorRampStops = new String[crArray.size()];
+                for (int i = 0; i < crArray.size(); i++) {
+                    colorRampStops[i] = crArray.getString(i);
+                }
+            }
+        }
+
+        // ── Delegate to parent FIRST (handles coordinate/style update,
+        //     removes old drawables, recreates plain ones) ──
+        UpdateResult result = super.updateEntry(entry, params,
+                mapFragment, contentResolver);
+
+        // ── Post-process: replace parent's plain drawables with
+        //     color-ramp-valued ones if segment values are present ──
+        if (segmentValues != null && segmentValues.length > 0) {
+            entrySegmentValues.put(entry.pathUuid, segmentValues);
+
+            ColorRampVectorLayer crLayer = (ColorRampVectorLayer)
+                    getSharedLayer(entry.fragmentUuid);
+            if (crLayer != null && !entry.drawables.isEmpty()) {
+                // Remove parent's plain drawables.
+                for (LineDrawable d : entry.drawables) {
+                    crLayer.remove(d);
+                }
+                entry.drawables.clear();
+
+                Style style = getStyleBuilder(
+                        Utils.rMapHasKey(params, "style")
+                                ? params.getMap("style")
+                                : null).build();
+
+                Coordinate[] coords = entry.jtsCoordinates;
+                for (int i = 0; i < coords.length; i++) {
+                    if (i != 0) {
+                        double[] segment = new double[4];
+                        segment[0] = coords[i].x;
+                        segment[1] = coords[i].y;
+                        segment[2] = coords[i - 1].x;
+                        segment[3] = coords[i - 1].y;
+                        LineDrawable drawable = new LineDrawable(
+                                segment, style);
+                        drawable.setPriority(entry.positionIndex);
+
+                        float val = (i - 1) < segmentValues.length
+                                ? segmentValues[i - 1] : 0.5f;
+                        crLayer.addLineDrawableWithValues(drawable,
+                                new float[]{val});
+                        entry.drawables.add(drawable);
+                    }
+                }
+                crLayer.update();
+            }
+        }
+
+        // ── Upload color-ramp texture if stops provided ──
+        if (colorRampStops != null) {
+            ColorRampVectorLayer crLayer = (ColorRampVectorLayer)
+                    getSharedLayer(entry.fragmentUuid);
+            if (crLayer != null) {
+                crLayer.setColorRampStops(colorRampStops);
+            }
+        }
+
+        return result;
     }
 
     @Override

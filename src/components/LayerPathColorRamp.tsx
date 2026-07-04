@@ -16,7 +16,7 @@ import LayerPathColorRampModule, {
  * Core library dependencies (peer).
  * react-native-mapsforge-vtm must be installed as a peer dependency.
  */
-import MapHandleContext from 'react-native-mapsforge-vtm';
+import { MapHandleContext } from 'react-native-mapsforge-vtm';
 
 /**
  * Reports a native error to the console and the optional onError callback.
