@@ -5,8 +5,12 @@ import type { Position as GeoJsonPosition } from 'geojson';
 
 /*
  * Types redeclared inline because react-native-codegen's TS parser cannot
- * follow imported types. ErrorBase and GeometryStyle are minimal mirrors of
- * the types from react-native-mapsforge-vtm.
+ * follow imported types. ErrorBase and GeometryStyle mirror the canonical
+ * definitions in react-native-mapsforge-vtm (src/NativeModules/NativeLayerPath.ts
+ * and src/types.ts). Keep these in sync when the core library's types change.
+ *
+ * TODO: Once the core library re-exports these from its public API, import
+ * them instead of maintaining local copies here.
  */
 
 type Position = ReadonlyArray<Double>;
@@ -17,6 +21,7 @@ export interface ErrorBase {
 	code?: string;
 }
 
+/** Mirrors GeometryStyle from react-native-mapsforge-vtm. Keep in sync. */
 export type GeometryStyle = {
 	strokeWidth?: Double;
 	strokeColor?: `#${string}`;
