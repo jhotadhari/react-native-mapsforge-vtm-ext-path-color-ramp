@@ -93,6 +93,11 @@ public class LineBucket extends RenderBucket {
 
     public float heightOffset;
 
+    // ── Per-instance color-ramp texture ID ──
+    // 0 means no color ramp (use original shaders).
+    // Non-zero: bind this 2D RGBA8 texture to unit 1 for the value shader.
+    public int mColorRampTexID;
+
     private int tmin = Integer.MIN_VALUE, tmax = Integer.MAX_VALUE;
 
     public LineBucket(int layer) {
@@ -668,7 +673,8 @@ public class LineBucket extends RenderBucket {
 
         public static int mTexID;
         // ── Color-ramp state ──
-        public static int mColorRampTexID;
+        // Per-instance texture IDs are now stored on LineBucket.mColorRampTexID.
+        // The static field is retained for the default white texture only.
         // Default 1×1 white texture bound when no color ramp is set,
         // so the value shader's u_colorRamp sample returns white (1,1,1,1)
         // and gl_FragColor depends solely on u_color (matching original behavior).
@@ -723,12 +729,6 @@ public class LineBucket extends RenderBucket {
              * account. only used when tilt is 0. */
             int mode = v.pos.tilt < 1 ? 1 : 0;
 
-            // ── Select shader set: value shaders only when a color ramp is active ──
-            boolean useValueShaders = (mColorRampTexID != 0);
-            Shader[] activeShaders = useValueShaders ? valueShaders : originalShaders;
-            Shader s = activeShaders[mode];
-            s.useProgram();
-
             GLState.blend(true);
 
             /* Somehow we loose the texture after an indefinite
@@ -738,31 +738,12 @@ public class LineBucket extends RenderBucket {
             if (!GLAdapter.GDX_DESKTOP_QUIRKS)
                 GLState.bindTex2D(mTexID);
 
-            // ── Bind color-ramp texture at unit 1 (value shaders only) ──
-            if (useValueShaders) {
-                gl.activeTexture(GL.TEXTURE1);
-                gl.bindTexture(GL.TEXTURE_2D, mColorRampTexID);
-                gl.uniform1i(s.uColorRamp, 1);
-                // Restore active texture to unit 0 for subsequent rendering.
-                gl.activeTexture(GL.TEXTURE0);
-            }
-
-            int uLineFade = s.uFade;
-            int uLineMode = s.uMode;
-            int uLineColor = s.uColor;
-            int uLineWidth = s.uWidth;
-            int uLineHeight = s.uHeight;
-
-            // ── Vertex attrib pointers: 5 shorts per vertex (value short is
-            //     ignored by original shaders which only declare a_pos) ──
-            // a_pos: 4 shorts = 8 bytes, stride = 10 bytes, offset = 0
-            gl.vertexAttribPointer(s.aPos, 4, GL.SHORT, false, 10,
-                    buckets.offset[LINE]);
-            // a_value: only enabled with value shaders
-            if (useValueShaders) {
-                gl.vertexAttribPointer(s.aValue, 1, GL.SHORT, true, 10,
-                        buckets.offset[LINE] + 8);
-            }
+            // ── Track active shader set to avoid redundant program switches ──
+            // 0 = not yet set, 1 = original shaders, 2 = value shaders
+            int activeShaderSet = 0;
+            Shader s = null;
+            int uLineFade = 0, uLineMode = 0, uLineColor = 0;
+            int uLineWidth = 0, uLineHeight = 0;
 
             v.mvp.setAsUniform(s.uMVP);
 
@@ -789,6 +770,39 @@ public class LineBucket extends RenderBucket {
 
             for (; b != null && b.type == RenderBucket.LINE; b = b.next) {
                 LineBucket lb = (LineBucket) b;
+
+                // ── Per-bucket shader selection & texture binding ──
+                boolean useValue = (lb.mColorRampTexID != 0);
+                int neededSet = useValue ? 2 : 1;
+                if (neededSet != activeShaderSet) {
+                    activeShaderSet = neededSet;
+                    Shader[] activeShaders = useValue ? valueShaders : originalShaders;
+                    s = activeShaders[mode];
+                    s.useProgram();
+                    uLineFade = s.uFade;
+                    uLineMode = s.uMode;
+                    uLineColor = s.uColor;
+                    uLineWidth = s.uWidth;
+                    uLineHeight = s.uHeight;
+
+                    // a_pos: 4 shorts = 8 bytes, stride = 10 bytes, offset = 0
+                    gl.vertexAttribPointer(s.aPos, 4, GL.SHORT, false, 10,
+                            buckets.offset[LINE]);
+                    // a_value: only enabled with value shaders
+                    if (useValue) {
+                        gl.vertexAttribPointer(s.aValue, 1, GL.SHORT, true, 10,
+                                buckets.offset[LINE] + 8);
+                    }
+                }
+
+                // Bind per-bucket color-ramp texture at unit 1.
+                if (useValue) {
+                    gl.activeTexture(GL.TEXTURE1);
+                    gl.bindTexture(GL.TEXTURE_2D, lb.mColorRampTexID);
+                    gl.uniform1i(s.uColorRamp, 1);
+                    gl.activeTexture(GL.TEXTURE0);
+                }
+
                 LineStyle line = lb.line.current();
 
                 if (line.heightOffset != lb.heightOffset)

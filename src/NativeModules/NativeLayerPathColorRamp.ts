@@ -51,6 +51,7 @@ interface CreateLayerParams {
 	nativeNodeHandle?: Int32;
 	positionIndex?: Int32;
 	coordinates?: ReadonlyArray<Position>;
+	fragmentUuid?: string;
 	segmentValues?: ReadonlyArray<Double>;
 	colorRampStops?: ReadonlyArray<string>;
 	supportsGestures?: boolean;

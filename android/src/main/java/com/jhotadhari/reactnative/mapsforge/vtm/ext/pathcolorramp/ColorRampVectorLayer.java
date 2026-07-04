@@ -1,14 +1,9 @@
 package com.jhotadhari.reactnative.mapsforge.vtm.ext.pathcolorramp;
 
-import android.graphics.Bitmap;
-import android.opengl.GLUtils;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.oscim.backend.GL;
-import org.oscim.backend.GLAdapter;
-import org.oscim.core.GeometryBuffer;
 import org.oscim.core.Tile;
 import org.oscim.layers.vector.geometries.Drawable;
 import org.oscim.layers.vector.geometries.LineDrawable;
@@ -55,6 +50,12 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
     /** The GL texture ID of the color ramp currently set on this layer. */
     private int mColorRampTexID = 0;
 
+    /** Pending pixel data for deferred GL upload (bridge thread → GL thread). */
+    private ByteBuffer mPendingRampBuffer = null;
+    private int mPendingRampWidth = 0;
+    private volatile boolean mPendingRampUpload = false;
+    private final Object mPendingLock = new Object();
+
     // ── Constructors ──────────────────────────────────────────────────────
 
     public ColorRampVectorLayer(@NonNull Map map) {
@@ -99,12 +100,19 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
     // ── Color-ramp texture management ──────────────────────────────────────
 
     /**
-     * Builds a 256×1 RGBA8 2D texture from an array of hex color stops
-     * (e.g. {@code "#440154"}) and uploads it to the GPU.
+     * Builds a 256×1 RGBA8 pixel array from an array of hex color stops
+     * (e.g. {@code "#440154"}) and defers the GPU upload to the next
+     * {@link #update()} call, which runs on the GL render thread.
      *
-     * <p>The texture is stored as a static field on
-     * {@link LineBucket.Renderer#mColorRampTexID} so the shadowed line renderer
-     * can bind it during the next frame without per-layer texture switching.
+     * <p>OpenGL calls must happen on the GL thread. Since this method is
+     * called from the React Native bridge thread (via the TurboModule),
+     * we only build the pixel buffer here and set a flag. The actual
+     * {@code glGenTextures} / {@code glTexImage2D} happens in
+     * {@link #uploadPendingRamp()}, invoked from {@link #update()}.
+     *
+     * <p>Once uploaded, the texture ID is stored in this layer instance and
+     * written to each {@link LineBucket} during
+     * {@link #drawLineWithValues(Task, int, Geometry, Style, float[])}.
      *
      * @param colorRampStops array of hex color strings (at least 2)
      */
@@ -144,13 +152,38 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
         }
         buffer.flip();
 
+        // Store for deferred upload on the GL thread.
+        synchronized (mPendingLock) {
+            mPendingRampBuffer = buffer;
+            mPendingRampWidth = width;
+            mPendingRampUpload = true;
+        }
+    }
+
+    /**
+     * Uploads the pending color-ramp pixel data to a GL texture.
+     * Must be called from the GL render thread (via {@link #update()}).
+     */
+    private void uploadPendingRamp() {
+        ByteBuffer buffer;
+        int width;
+        synchronized (mPendingLock) {
+            if (!mPendingRampUpload || mPendingRampBuffer == null) {
+                return;
+            }
+            buffer = mPendingRampBuffer;
+            width = mPendingRampWidth;
+            mPendingRampBuffer = null;
+            mPendingRampUpload = false;
+        }
+
         // Delete old texture if one exists.
         if (mColorRampTexID != 0) {
             int[] tex = {mColorRampTexID};
             gl.deleteTextures(1, tex, 0);
         }
 
-        // Create new texture.
+        // Create new texture on the GL thread.
         int[] texIds = new int[1];
         gl.genTextures(1, texIds, 0);
         mColorRampTexID = texIds[0];
@@ -162,9 +195,6 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
         gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE);
         gl.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, width, 1, 0,
                 GL.RGBA, GL.UNSIGNED_BYTE, buffer);
-
-        // Publish to the shadowed renderer.
-        LineBucket.Renderer.mColorRampTexID = mColorRampTexID;
     }
 
     /**
@@ -176,18 +206,28 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
 
     /**
      * Releases the color-ramp texture. Call when the layer is destroyed.
+     * Must be called from the GL render thread.
      */
     public void releaseColorRampTexture() {
+        synchronized (mPendingLock) {
+            mPendingRampBuffer = null;
+            mPendingRampUpload = false;
+        }
         if (mColorRampTexID != 0) {
-            int oldId = mColorRampTexID;
-            int[] tex = {oldId};
+            int[] tex = {mColorRampTexID};
             gl.deleteTextures(1, tex, 0);
             mColorRampTexID = 0;
-            // Clear the static reference only if it still points to OUR texture.
-            if (LineBucket.Renderer.mColorRampTexID == oldId) {
-                LineBucket.Renderer.mColorRampTexID = 0;
-            }
         }
+    }
+
+    // ── GL-thread upload hook ──────────────────────────────────────────────
+
+    @Override
+    public void update() {
+        // Upload pending color-ramp texture before the render pass.
+        // This runs on the GL render thread (called from MapRenderer).
+        uploadPendingRamp();
+        super.update();
     }
 
     // ── Rendering override ─────────────────────────────────────────────────
@@ -225,6 +265,9 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
         }
 
         LineBucket ll = t.buckets.getLineBucket(level);
+        // Set per-bucket color-ramp texture ID so the renderer binds the
+        // correct texture for this layer instance (no longer a global static).
+        ll.mColorRampTexID = mColorRampTexID;
         if (ll.line == null) {
             ll.line = LineStyle.builder()
                     .reset()

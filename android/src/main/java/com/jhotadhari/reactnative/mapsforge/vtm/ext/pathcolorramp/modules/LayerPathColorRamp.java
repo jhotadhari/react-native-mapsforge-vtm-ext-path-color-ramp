@@ -25,7 +25,7 @@ import org.oscim.layers.vector.geometries.Style;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+
 import java.util.UUID;
 
 /**
@@ -92,18 +92,21 @@ public class LayerPathColorRamp extends NativeLayerPathColorRampSpec {
         double strokeWidth = Utils.rMapHasKey(styleMap, "strokeWidth")
                 ? styleMap.getDouble("strokeWidth")
                 : styleConstants.getDouble("strokeWidth");
+        // rMapHasKey returns true for null values, so guard against
+        // getString returning null (JS passing { strokeColor: null }).
         String strokeColor = Utils.rMapHasKey(styleMap, "strokeColor")
+                && styleMap.getString("strokeColor") != null
                 ? styleMap.getString("strokeColor")
                 : styleConstants.getString("strokeColor");
 
         Style.Builder styleBuilder = Style.builder();
         styleBuilder.strokeWidth((float) strokeWidth);
-        styleBuilder.strokeColor(Color.parseColor(
-                Objects.requireNonNull(strokeColor)));
+        styleBuilder.strokeColor(Color.parseColor(strokeColor));
 
-        if (Utils.rMapHasKey(styleMap, "fillColor")) {
+        if (Utils.rMapHasKey(styleMap, "fillColor")
+                && styleMap.getString("fillColor") != null) {
             styleBuilder.fillColor(Color.parseColor(
-                    Objects.requireNonNull(styleMap.getString("fillColor"))));
+                    styleMap.getString("fillColor")));
         }
         if (Utils.rMapHasKey(styleMap, "fillAlpha")) {
             styleBuilder.fillAlpha((float) styleMap.getDouble("fillAlpha"));
@@ -115,9 +118,9 @@ public class LayerPathColorRamp extends NativeLayerPathColorRampSpec {
             styleBuilder.scaleZoomLevel(
                     styleMap.getInt("scalingZoomLevel"));
         }
-        if (Utils.rMapHasKey(styleMap, "cap")) {
-            Paint.Cap cap = switch (Objects.requireNonNull(
-                    styleMap.getString("cap"))) {
+        if (Utils.rMapHasKey(styleMap, "cap")
+                && styleMap.getString("cap") != null) {
+            Paint.Cap cap = switch (styleMap.getString("cap")) {
                 case "ROUND" -> Paint.Cap.ROUND;
                 case "BUTT" -> Paint.Cap.BUTT;
                 case "SQUARE" -> Paint.Cap.SQUARE;
@@ -140,10 +143,10 @@ public class LayerPathColorRamp extends NativeLayerPathColorRampSpec {
         if (Utils.rMapHasKey(styleMap, "stipple")) {
             styleBuilder.stipple(styleMap.getInt("stipple"));
         }
-        if (Utils.rMapHasKey(styleMap, "stippleColor")) {
+        if (Utils.rMapHasKey(styleMap, "stippleColor")
+                && styleMap.getString("stippleColor") != null) {
             styleBuilder.stippleColor(Color.parseColor(
-                    Objects.requireNonNull(
-                            styleMap.getString("stippleColor"))));
+                    styleMap.getString("stippleColor")));
         }
         if (Utils.rMapHasKey(styleMap, "stippleWidth")) {
             styleBuilder.stippleWidth(

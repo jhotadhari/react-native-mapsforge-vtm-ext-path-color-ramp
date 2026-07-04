@@ -9,7 +9,13 @@
  */
 
 declare module 'react-native-mapsforge-vtm' {
-	import type { Context } from 'react';
+	import type { ComponentType, Context } from 'react';
+
+	export interface ErrorBase {
+		nativeStackAndroid?: unknown[];
+		userInfo: { errorMsg: string };
+		code?: string;
+	}
 
 	export interface LayerOrderRegistry {
 		readonly order: symbol[];
@@ -35,4 +41,44 @@ declare module 'react-native-mapsforge-vtm' {
 	}
 
 	export const MapHandleContext: Context<MapHandleContextValue>;
+
+	export function createLayerOrderRegistry(): LayerOrderRegistry;
+
+	// ── Layer lifecycle hooks (re-exported as extension-point API) ──
+
+	export type CreateFlags = {
+		triggerOnCreate: boolean;
+		triggerOnChange: boolean;
+	};
+
+	export type RemoveFlags = {
+		triggerOnRemove: boolean;
+	};
+
+	export function useLayerOrder(
+		uuid: null | false | string,
+		layerType?: string
+	): {
+		nativeNodeHandle: null | number;
+		positionIndex: number;
+		fragmentUuid: string | undefined;
+	};
+
+	export function useNativeLayerLifecycle<TUuid extends string = string>(opts: {
+		enabled: boolean;
+		create: (flags: CreateFlags) => Promise<TUuid>;
+		remove: (uuid: TUuid, flags: RemoveFlags) => Promise<boolean>;
+		onError?: null | ((err: ErrorBase) => void);
+	}): {
+		uuid: null | false | TUuid;
+		triggerCreate: (flags?: CreateFlags) => void;
+		triggerRemove: (flags?: RemoveFlags) => Promise<boolean>;
+	};
+
+	// ── SharedLayer / ReindexScope wrappers ──
+
+	export const SharedLayer: ComponentType<{ children: React.ReactNode }>;
+	export const ReindexScope: ComponentType<{
+		children: React.ReactNode;
+	}>;
 }

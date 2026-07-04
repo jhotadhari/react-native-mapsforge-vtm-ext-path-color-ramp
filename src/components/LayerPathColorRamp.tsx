@@ -16,7 +16,11 @@ import LayerPathColorRampModule, {
  * Core library dependencies (peer).
  * react-native-mapsforge-vtm must be installed as a peer dependency.
  */
-import { MapHandleContext } from 'react-native-mapsforge-vtm';
+import {
+	MapHandleContext,
+	useLayerOrder,
+	useNativeLayerLifecycle,
+} from 'react-native-mapsforge-vtm';
 
 /**
  * Reports a native error to the console and the optional onError callback.
@@ -75,91 +79,91 @@ const LayerPathColorRamp = ({
 	onError,
 }: LayerPathColorRampProps) => {
 	// Get the MapHandleContext value which contains nativeNodeHandle + layer registry.
-	const mapHandleContext = useContext(MapHandleContext);
-	const nativeNodeHandle = mapHandleContext?.nativeNodeHandle ?? undefined;
+	const { nativeNodeHandle } = useContext(MapHandleContext);
 
-	const uuidRef = useRef<string | null>(null);
 	const hasCoordinates = !!coordinates && coordinates.length > 0;
 
-	// ── Create / remove lifecycle ──────────────────────────────────────
-	useEffect(() => {
-		if (!nativeNodeHandle || !hasCoordinates || !coordinates) {
-			return;
-		}
+	// positionIndex is computed by useLayerOrder during render (after the uuid
+	// declaration below) but must be available inside the create callback (which
+	// is defined here, before the declaration). A ref bridges the gap: it's set
+	// during render, then read when the async create callback fires.
+	const positionIndexRef = useRef<number>(-1);
+	const fragmentUuidRef = useRef<string | undefined>(undefined);
 
-		let cancelled = false;
-		const currentUuid = uuidRef.current;
-
-		// If we already have a layer with the same uuid, remove it first
-		// (coordinates/values changed — recreate).
-		const removeOld = currentUuid
-			? LayerPathColorRampModule.removeLayer({
-					nativeNodeHandle,
-					uuid: currentUuid,
-				}).catch(() => {})
-			: Promise.resolve();
-
-		removeOld.then(() => {
-			if (cancelled) return;
-
-			LayerPathColorRampModule.createLayer({
+	const { uuid, triggerCreate, triggerRemove } = useNativeLayerLifecycle({
+		enabled: !!nativeNodeHandle && hasCoordinates,
+		create: ({ triggerOnCreate, triggerOnChange }) => {
+			if (!nativeNodeHandle || !coordinates) {
+				return Promise.reject<string>({
+					userInfo: {
+						errorMsg: 'Missing nativeNodeHandle or coordinates',
+					},
+				} as ErrorBase);
+			}
+			return LayerPathColorRampModule.createLayer({
 				nativeNodeHandle,
+				positionIndex: positionIndexRef.current,
+				...(fragmentUuidRef.current && {
+					fragmentUuid: fragmentUuidRef.current,
+				}),
 				coordinates,
 				...(segmentValues && { segmentValues }),
 				...(colorRampStops && { colorRampStops }),
 				...(style && { style }),
+			}).then((response: LayerPathColorRampResponse) => {
+				triggerOnCreate && onCreate ? onCreate(response) : null;
+				triggerOnChange && onChange ? onChange(response) : null;
+				return response.uuid;
+			});
+		},
+		remove: (currentUuid, { triggerOnRemove }) => {
+			if (!nativeNodeHandle) {
+				return Promise.resolve(false);
+			}
+			return LayerPathColorRampModule.removeLayer({
+				nativeNodeHandle,
+				uuid: currentUuid,
 			})
-				.then((response: LayerPathColorRampResponse) => {
-					if (cancelled) {
-						// Cleanup: remove the layer we just created.
-						LayerPathColorRampModule.removeLayer({
-							nativeNodeHandle,
-							uuid: response.uuid,
-						}).catch(() => {});
-						return;
-					}
-					uuidRef.current = response.uuid;
-					onCreate ? onCreate(response) : null;
-					onChange ? onChange(response) : null;
+				.then((removedUuid) => {
+					triggerOnRemove && onRemove
+						? onRemove({
+								nativeNodeHandle,
+								uuid: removedUuid,
+							})
+						: null;
+					return true;
 				})
 				.catch((err: ErrorBase) => {
 					reportNativeError(err, onError);
+					return false;
 				});
-		});
+		},
+		onError,
+	});
 
-		return () => {
-			cancelled = true;
-			const uuid = uuidRef.current;
-			if (uuid && nativeNodeHandle) {
-				LayerPathColorRampModule.removeLayer({
-					nativeNodeHandle,
-					uuid,
-				})
-					.then(() => {
-						uuidRef.current = null;
-						onRemove
-							? onRemove({
-									nativeNodeHandle,
-									uuid,
-								})
-							: null;
-					})
-					.catch((err: ErrorBase) => {
-						reportNativeError(err, onError);
-					});
+	const { positionIndex, fragmentUuid } = useLayerOrder(uuid, 'path');
+	positionIndexRef.current = positionIndex;
+	fragmentUuidRef.current = fragmentUuid;
+
+	// Recreate when construction-baked props change. The native module does not
+	// yet have an in-place update path; remove+create is the only mechanism for
+	// reflecting new coordinates, segmentValues, colorRampStops, or style.
+	useEffect(() => {
+		triggerRemove({ triggerOnRemove: false }).then((success) => {
+			if (success) {
+				triggerCreate({
+					triggerOnCreate: false,
+					triggerOnChange: true,
+				});
 			}
-		};
+		});
 	}, [
-		nativeNodeHandle,
 		coordinates,
 		segmentValues,
 		colorRampStops,
 		style,
-		hasCoordinates,
-		onCreate,
-		onRemove,
-		onChange,
-		onError,
+		triggerRemove,
+		triggerCreate,
 	]);
 
 	return null;

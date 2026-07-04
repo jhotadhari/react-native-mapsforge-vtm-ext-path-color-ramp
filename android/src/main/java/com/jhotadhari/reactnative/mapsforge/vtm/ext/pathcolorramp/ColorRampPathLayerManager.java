@@ -25,6 +25,7 @@ import org.oscim.layers.vector.geometries.Style;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  * Extends {@link PathLayerManager} to support per-segment color-ramp rendering.
@@ -45,6 +46,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * manager for a given map view.
  */
 public class ColorRampPathLayerManager extends PathLayerManager {
+
+    private static final Logger log = Logger.getLogger(
+            ColorRampPathLayerManager.class.getName());
 
     // ── Factory ────────────────────────────────────────────────────────────
 
@@ -160,6 +164,15 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                                 : null).build();
 
                 Coordinate[] coords = entry.jtsCoordinates;
+                int expectedSegments = coords.length - 1;
+                if (segmentValues.length != expectedSegments) {
+                    log.warning("segmentValues length ("
+                            + segmentValues.length
+                            + ") does not match segment count ("
+                            + expectedSegments
+                            + ") for entry " + entryUuid
+                            + "; values will be mismatched");
+                }
                 for (int i = 0; i < coords.length; i++) {
                     if (i != 0) {
                         double[] segment = new double[4];
@@ -253,6 +266,15 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                                 : null).build();
 
                 Coordinate[] coords = entry.jtsCoordinates;
+                int expectedSegments = coords.length - 1;
+                if (segmentValues.length != expectedSegments) {
+                    log.warning("segmentValues length ("
+                            + segmentValues.length
+                            + ") does not match segment count ("
+                            + expectedSegments
+                            + ") for entry " + entry.pathUuid
+                            + " in updateEntry; values will be mismatched");
+                }
                 for (int i = 0; i < coords.length; i++) {
                     if (i != 0) {
                         double[] segment = new double[4];
