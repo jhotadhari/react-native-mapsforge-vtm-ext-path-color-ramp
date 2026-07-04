@@ -1,0 +1,14 @@
+# ignore all.
+*/**/*
+/*
+
+# include root ts js files.
+!/*.js
+!/*.ts
+
+# include dir src.
+!/src
+!src/**/*
+# exclude generated declaration files (they belong in lib/typescript/).
+src/**/*.d.ts
+src/**/*.d.ts.map
