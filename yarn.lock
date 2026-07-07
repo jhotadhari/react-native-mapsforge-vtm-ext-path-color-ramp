@@ -721,7 +721,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-arrow-functions@npm:^7.29.7":
+"@babel/plugin-transform-arrow-functions@npm:^7.27.1, @babel/plugin-transform-arrow-functions@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/plugin-transform-arrow-functions@npm:7.29.7"
   dependencies:
@@ -780,7 +780,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-class-properties@npm:^7.25.4, @babel/plugin-transform-class-properties@npm:^7.29.7":
+"@babel/plugin-transform-class-properties@npm:^7.25.4, @babel/plugin-transform-class-properties@npm:^7.28.6, @babel/plugin-transform-class-properties@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/plugin-transform-class-properties@npm:7.29.7"
   dependencies:
@@ -804,7 +804,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-classes@npm:^7.25.4, @babel/plugin-transform-classes@npm:^7.29.7":
+"@babel/plugin-transform-classes@npm:^7.25.4, @babel/plugin-transform-classes@npm:^7.28.6, @babel/plugin-transform-classes@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/plugin-transform-classes@npm:7.29.7"
   dependencies:
@@ -1078,7 +1078,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-nullish-coalescing-operator@npm:^7.24.7, @babel/plugin-transform-nullish-coalescing-operator@npm:^7.29.7":
+"@babel/plugin-transform-nullish-coalescing-operator@npm:^7.24.7, @babel/plugin-transform-nullish-coalescing-operator@npm:^7.28.6, @babel/plugin-transform-nullish-coalescing-operator@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/plugin-transform-nullish-coalescing-operator@npm:7.29.7"
   dependencies:
@@ -1138,7 +1138,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-optional-chaining@npm:^7.24.8, @babel/plugin-transform-optional-chaining@npm:^7.29.7":
+"@babel/plugin-transform-optional-chaining@npm:^7.24.8, @babel/plugin-transform-optional-chaining@npm:^7.28.6, @babel/plugin-transform-optional-chaining@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/plugin-transform-optional-chaining@npm:7.29.7"
   dependencies:
@@ -1318,7 +1318,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-shorthand-properties@npm:^7.29.7":
+"@babel/plugin-transform-shorthand-properties@npm:^7.27.1, @babel/plugin-transform-shorthand-properties@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/plugin-transform-shorthand-properties@npm:7.29.7"
   dependencies:
@@ -1363,7 +1363,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-template-literals@npm:^7.29.7":
+"@babel/plugin-transform-template-literals@npm:^7.27.1, @babel/plugin-transform-template-literals@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/plugin-transform-template-literals@npm:7.29.7"
   dependencies:
@@ -1423,7 +1423,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-unicode-regex@npm:^7.24.7, @babel/plugin-transform-unicode-regex@npm:^7.29.7":
+"@babel/plugin-transform-unicode-regex@npm:^7.24.7, @babel/plugin-transform-unicode-regex@npm:^7.27.1, @babel/plugin-transform-unicode-regex@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/plugin-transform-unicode-regex@npm:7.29.7"
   dependencies:
@@ -1605,7 +1605,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/types@npm:^7.0.0, @babel/types@npm:^7.20.7, @babel/types@npm:^7.28.2, @babel/types@npm:^7.29.0, @babel/types@npm:^7.29.7, @babel/types@npm:^7.3.3, @babel/types@npm:^7.4.4":
+"@babel/types@npm:^7.0.0, @babel/types@npm:^7.20.7, @babel/types@npm:^7.27.1, @babel/types@npm:^7.28.2, @babel/types@npm:^7.29.0, @babel/types@npm:^7.29.7, @babel/types@npm:^7.3.3, @babel/types@npm:^7.4.4":
   version: 7.29.7
   resolution: "@babel/types@npm:7.29.7"
   dependencies:
@@ -5309,13 +5309,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"events@npm:^3.3.0":
-  version: 3.3.0
-  resolution: "events@npm:3.3.0"
-  checksum: f6f487ad2198aa41d878fa31452f1a3c00958f46e9019286ff4787c84aac329332ab45c9cdc8c445928fc6d7ded294b9e005a7fce9426488518017831b272780
-  languageName: node
-  linkType: hard
-
 "execa@npm:^5.0.0":
   version: 5.1.1
   resolution: "execa@npm:5.1.1"
@@ -8384,13 +8377,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"queue-promise@npm:^2.2.1":
-  version: 2.2.1
-  resolution: "queue-promise@npm:2.2.1"
-  checksum: 139c1844225580545a94c5a234fcde33e47941f473525bb0df3dacbdd55724993754f048c25c3a8b98961cd84221913b633397383ef8bc92476237d0dca6d721
-  languageName: node
-  linkType: hard
-
 "queue@npm:6.0.2":
   version: 6.0.2
   resolution: "queue@npm:6.0.2"
@@ -8501,10 +8487,25 @@ __metadata:
     react: 19.2.7
     react-native: 0.86.0
     react-native-builder-bob: ^0.43.0
-    react-native-mapsforge-vtm: ">=0.7.0"
+    react-native-mapsforge-vtm: "file:.yalc/react-native-mapsforge-vtm"
+    react-native-mapsforge-vtm-ext-path-color-ramp: "file:.yalc/react-native-mapsforge-vtm-ext-path-color-ramp"
     react-native-reanimated: ">=3.0.0"
+    react-native-worklets: ^0.10.1
   languageName: unknown
   linkType: soft
+
+"react-native-mapsforge-vtm-ext-path-color-ramp@file:.yalc/react-native-mapsforge-vtm-ext-path-color-ramp::locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample":
+  version: 0.0.1
+  resolution: "react-native-mapsforge-vtm-ext-path-color-ramp@file:.yalc/react-native-mapsforge-vtm-ext-path-color-ramp#.yalc/react-native-mapsforge-vtm-ext-path-color-ramp::hash=bc4f27&locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample"
+  dependencies:
+    react-native-worklets: ^0.10.1
+  peerDependencies:
+    react: "*"
+    react-native: ">=0.80.0"
+    react-native-mapsforge-vtm: ">=0.7.0"
+  checksum: d6522244860ebac3c6fc6566851337e156f6023125067169074254b031c392aab63f580c22e4081a10742f171cca0e71a0cd37cdb29660a39f3a531867b3946b
+  languageName: node
+  linkType: hard
 
 "react-native-mapsforge-vtm-ext-path-color-ramp@workspace:.":
   version: 0.0.0-use.local
@@ -8530,6 +8531,8 @@ __metadata:
     react: 19.2.7
     react-native: 0.86.0
     react-native-builder-bob: ^0.43.0
+    react-native-mapsforge-vtm: "file:example/node_modules/react-native-mapsforge-vtm"
+    react-native-worklets: ^0.10.1
     typescript: ^6.0.3
   peerDependencies:
     react: "*"
@@ -8538,17 +8541,41 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"react-native-mapsforge-vtm@npm:>=0.7.0":
+"react-native-mapsforge-vtm@file:.yalc/react-native-mapsforge-vtm::locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample":
   version: 0.7.0
-  resolution: "react-native-mapsforge-vtm@npm:0.7.0"
+  resolution: "react-native-mapsforge-vtm@file:.yalc/react-native-mapsforge-vtm#.yalc/react-native-mapsforge-vtm::hash=cc43f4&locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample"
   dependencies:
-    events: ^3.3.0
     lodash-es: ^4.17.21
-    queue-promise: ^2.2.1
   peerDependencies:
     react: "*"
-    react-native: "*"
-  checksum: 9a9f89efe073409927e73f8c51334274fb8eec6c3b99dd3c4fa00c852546ae9d7ea90d524cb557aa76b3033f3f43deeebabf0bb107bff63ede6958e63b0cef75
+    react-native: ">=0.80.0"
+    react-native-reanimated: ">=3.0.0"
+    react-native-worklets: ">=0.1.0"
+  peerDependenciesMeta:
+    react-native-reanimated:
+      optional: true
+    react-native-worklets:
+      optional: true
+  checksum: 1b7ad82e22f86b24bb2807dba78e89b216502b2e758098f6b1c00e236861f59b7fc8106c4db20d3ba4321e2dea14770ab8915febae6b1baa2c0d327060367739
+  languageName: node
+  linkType: hard
+
+"react-native-mapsforge-vtm@file:example/node_modules/react-native-mapsforge-vtm::locator=react-native-mapsforge-vtm-ext-path-color-ramp%40workspace%3A.":
+  version: 0.7.0
+  resolution: "react-native-mapsforge-vtm@file:example/node_modules/react-native-mapsforge-vtm#example/node_modules/react-native-mapsforge-vtm::hash=01c5c0&locator=react-native-mapsforge-vtm-ext-path-color-ramp%40workspace%3A."
+  dependencies:
+    lodash-es: ^4.17.21
+  peerDependencies:
+    react: "*"
+    react-native: ">=0.80.0"
+    react-native-reanimated: ">=3.0.0"
+    react-native-worklets: ">=0.1.0"
+  peerDependenciesMeta:
+    react-native-reanimated:
+      optional: true
+    react-native-worklets:
+      optional: true
+  checksum: e9a23cf727c23e87291be05efb879c9f425a9ef5853838720922af9e804bae5c96f1927e3fc1451e47e400ff9a0fcba135f06f98d8c53db2aff3b5b679b0c993
   languageName: node
   linkType: hard
 
@@ -8563,6 +8590,31 @@ __metadata:
     react-native: 0.83 - 0.86
     react-native-worklets: 0.10.x
   checksum: 7ea6e48b4f9ab59f9a7acda40f0a433ff733df3216877390a5a6389fad011c5d7dc81762c4173fba29c7ddbf564dc50068d244bb7b20fdc91a79f83fa3a0e374
+  languageName: node
+  linkType: hard
+
+"react-native-worklets@npm:^0.10.1":
+  version: 0.10.1
+  resolution: "react-native-worklets@npm:0.10.1"
+  dependencies:
+    "@babel/plugin-transform-arrow-functions": ^7.27.1
+    "@babel/plugin-transform-class-properties": ^7.28.6
+    "@babel/plugin-transform-classes": ^7.28.6
+    "@babel/plugin-transform-nullish-coalescing-operator": ^7.28.6
+    "@babel/plugin-transform-optional-chaining": ^7.28.6
+    "@babel/plugin-transform-shorthand-properties": ^7.27.1
+    "@babel/plugin-transform-template-literals": ^7.27.1
+    "@babel/plugin-transform-unicode-regex": ^7.27.1
+    "@babel/preset-typescript": ^7.28.5
+    "@babel/types": ^7.27.1
+    convert-source-map: ^2.0.0
+    semver: ^7.7.4
+  peerDependencies:
+    "@babel/core": "*"
+    "@react-native/metro-config": "*"
+    react: "*"
+    react-native: 0.83 - 0.86
+  checksum: a0b26b9a382d34b03ae39fb2035a871684a36f0726a8c858e415f78be6a8711e60bbbcd555c0717b46809666591d9cc0040ba9e463b9c23a5738ee29f5019947
   languageName: node
   linkType: hard
 
