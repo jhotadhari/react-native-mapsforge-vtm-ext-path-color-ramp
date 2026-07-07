@@ -12,6 +12,17 @@ renders per-segment colored paths using a 1D color-ramp texture in the OpenGL fr
 Data values (slope, elevation, speed, etc.) are mapped to colors via a GPU texture lookup,
 enabling smooth color transitions along path segments at zero per-frame CPU cost.
 
+## Edit Tool - Whitespace Workaround
+
+For `.ts`/`.tsx`/`.js`/`.jsx` files: match `old_string` in Edit calls **without** leading
+whitespace (to avoid the tab-vs-space ambiguity described in
+[claude-code/#26996](https://github.com/anthropics/claude-code/issues/26996)). Accumulate all
+touched files, then run one `npx prettier --write <file1> <file2> ...` at the end to fix
+indentation. Only include leading whitespace when needed to disambiguate non-unique matches.
+
+For `.java` files, `yarn format` doesn't cover them — fall back to `sed` with explicit `\t`
+escapes after a single failed Edit attempt.
+
 The extension shadows (overrides) two vtm library classes (`LineBucket`, `RenderBuckets`) and
 adds two custom GLSL shaders to extend the vertex format with a per-vertex `a_value` attribute.
 
@@ -91,10 +102,14 @@ LayerPathColorRamp (React component, renders null)
 
 The color ramp stops (array of hex strings) are sent from JS → native on `createLayer` and
 `updateCoordinates`. The native side:
-1. Parses hex strings into RGBA byte array
-2. Creates a 256×1 RGBA8 2D texture via `GLUtils.loadTexture()`
-3. Binds it to texture unit 1 before `LineBucket.Renderer.draw()`
-4. Re-uploads texture data when color ramp stops change (no geometry rebuild needed)
+1. `ColorRampVectorLayer.setColorRampStops()` builds a 256×1 RGBA8 pixel buffer on the bridge
+   thread and stores it in a static `volatile ByteBuffer` on `LineBucket.Renderer`.
+2. On the next frame, `LineBucket.Renderer.draw()` (GL thread) picks up the pending buffer,
+   creates a GL texture via `GLUtils.glGenTextures()`, and uploads it with `gl.texImage2D()`.
+3. The texture is bound to unit 1 and `u_colorRamp` is set to unit 1.
+4. On subsequent frames, `drawLineWithValues()` copies the static `sColorRampTexID` into
+   each `LineBucket.mColorRampTexID`, and `Renderer.draw()` binds it per-bucket.
+5. Re-uploads happen when color ramp stops change (no geometry rebuild needed).
 
 ### Core library extensibility hooks
 
@@ -136,6 +151,7 @@ android/
         └── com/jhotadhari/reactnative/mapsforge/vtm/ext/pathcolorramp/
             ├── ColorRampVectorLayer.java     # Custom VectorLayer subclass (Phase 3)
             ├── ColorRampPathLayerManager.java# Extends PathLayerManager (Phase 3)
+            ├── MapsforgeVtmExtPathColorRampPackage.java # Required by autolinker
             └── modules/
                 └── LayerPathColorRamp.java   # TurboModule implementation (Phase 3)
 ```
@@ -150,13 +166,12 @@ elevation, color interpolation), and TurboModule spec. See `ROADMAP.md` for the 
 - [x] JS utilities: `usePathColorRamp`, color ramps, slope, elevation
 - [x] TurboModule spec (`NativeLayerPathColorRamp.ts`)
 - [x] React component stub (`LayerPathColorRamp.tsx`)
-
-### What remains
-- [ ] Core library extensibility hooks (Phase 1 — in react-native-mapsforge-vtm repo)
-- [ ] vtm class shadowing + GLSL shaders (Phase 2–3 — in this repo)
-- [ ] Native TurboModule implementation (Phase 3)
-- [ ] Wire up React component with `useNativeLayerLifecycle` (Phase 4)
-- [ ] Android device verification (Phase 6)
+- [x] vtm class shadowing + GLSL shaders (Phase 2–3)
+- [x] Native TurboModule implementation (Phase 3)
+- [x] React component wired to `useNativeLayerLifecycle` (Phase 4)
+- [x] `MapsforgeVtmExtPathColorRampPackage.java` for autolinker detection
+- [x] Example app builds and renders color-ramp paths on device
+- [x] Android device verification (Phase 6)
 
 ## Key design decisions
 
@@ -180,3 +195,76 @@ elevation, color interpolation), and TurboModule spec. See `ROADMAP.md` for the 
 - **Peer:** `react-native-mapsforge-vtm >= 0.7.0` (provides vtm, MapContainer, PathLayerManager)
 - **Transitive via core:** vtm v0.28.0, vtm-jts v0.28.0, JTS v1.20.0
 - **Build:** react-native-builder-bob, release-kit, prettier, eslint, lefthook
+
+## Gotchas discovered during build & device verification
+
+### Autolinker requires `*Package.java` implementing `ReactPackage`
+
+React Native's autolinker uses a regex to detect `*Package.java` files that `implements
+ReactPackage`. TurboModule-only packages without this class are not auto-linked. The extension
+provides `MapsforgeVtmExtPathColorRampPackage.java` extending `BaseReactPackage` with an
+explicit redundant `implements ReactPackage` — redundant but necessary for the regex.
+
+### TurboModule spec bypassed for RN 0.86
+
+The codegen-generated `NativeLayerPathColorRampSpec` was not resolved by javac despite being
+in the same compilation unit (file listed, compiles clean, but symbol not found — likely a
+Gradle source-path ordering issue). `LayerPathColorRamp` extends `ReactContextBaseJavaModule
+implements TurboModule` directly instead. `getTypedExportedConstants()` was renamed to
+`getConstants()` and `@Override` was removed from `createLayer`/`removeLayer` (which are
+no longer overriding abstract spec methods).
+
+### Java-only changes don't need `yarn prepare`
+
+`yarn prepare` runs `bob build` (codegen + TypeScript). Java changes in `android/src/main/java/`
+compile directly from source — no sync step needed. The example's `settings.gradle` points to
+the source `../../android` directory, not `node_modules`.
+
+### vtm v0.28.0 API mismatches
+
+- `GLState.enableVertexArrays(int, int)` — 2 args, not 3. The shadowed LineBucket was
+  written against an older vtm where it took 3 args.
+- `GL.deleteTextures(int, IntBuffer)` / `GL.genTextures(int, IntBuffer)` — takes `IntBuffer`,
+  not `(int, int[], int)`. Some GL impls' `IntBuffer.wrap()` doesn't transfer back to the
+  backing array. Use `GLUtils.glGenTextures(int)` instead which returns `int[]` directly.
+- `GLUtils.loadTexture()` allocates `width × height` bytes internally — only correct for
+  single-byte formats like `ALPHA`. RGBA textures (4 bytes/pixel) cause `BufferOverflowException`.
+  Use direct GL calls for RGBA textures.
+
+### GL calls must happen on the GL thread
+
+Calling `glGenTextures` from the bridge thread (e.g., via `update()`) silently returns texture
+ID 0 with `GL_NO_ERROR`. The color-ramp texture upload is deferred via a static
+`volatile ByteBuffer` set from the bridge thread and consumed by `LineBucket.Renderer.draw()`
+which runs on the GL thread.
+
+### Texture ID 0 may be valid on some GL implementations
+
+OpenGL ES spec reserves name 0, but some Mali/Android GL drivers return 0 as a valid name
+from `glGenTextures`. Using `mColorRampTexID != 0` as the "texture ready" check fails on
+these devices. The extension uses a separate `mHasColorRamp` boolean flag instead.
+
+### `v.mvp.setAsUniform(s.uMVP)` NPE
+
+The shadowed `Renderer.draw()` had `v.mvp.setAsUniform(s.uMVP)` before the for-loop where
+`Shader s` is initialized (initially null). Moved inside the shader-switch block where `s`
+is guaranteed valid.
+
+### Color ramp uses `u_color * texture2D(...)` — strokeColor must be white
+
+The value fragment shader multiplies the stroke color by the ramp lookup:
+`gl_FragColor = u_color * texture2D(u_colorRamp, ...)`. Default `strokeColor` is `#ffffff`
+(white) so the ramp color shows through unchanged. Setting strokeColor to e.g., red makes
+red × rampColor = black for most ramp entries.
+
+### VERTEX_CNT[LINE] = 5 and VBO layout
+
+Changing `VERTEX_CNT[LINE]` from 4 to 5 affects ALL line buckets in the VBO, not just
+color-ramp ones. Original vtm buckets with 4 shorts/vertex will have stride misalignment
+if mixed in the same frame. This works when all LINE buckets in a frame use 5-short vertices,
+but could break if regular paths and color-ramp paths share a frame.
+
+### `react-native-worklets` required for reanimated v4
+
+The example app uses `react-native-reanimated` >= 4.x which requires `react-native-worklets`
+as a peer dependency.

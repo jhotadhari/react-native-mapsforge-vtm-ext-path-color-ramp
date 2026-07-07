@@ -17,17 +17,18 @@ namespace facebook::react {
 
 #pragma mark - NativeLayerPathColorRampCreateLayerParams
 
-template <typename P0, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
+template <typename P0, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 struct NativeLayerPathColorRampCreateLayerParams {
   P0 nativeNodeHandle{};
   P1 positionIndex{};
   P2 coordinates{};
-  P3 segmentValues{};
-  P4 colorRampStops{};
-  P5 supportsGestures{};
-  P6 style;
+  P3 fragmentUuid{};
+  P4 segmentValues{};
+  P5 colorRampStops{};
+  P6 supportsGestures{};
+  P7 style;
   bool operator==(const NativeLayerPathColorRampCreateLayerParams &other) const {
-    return nativeNodeHandle == other.nativeNodeHandle && positionIndex == other.positionIndex && coordinates == other.coordinates && segmentValues == other.segmentValues && colorRampStops == other.colorRampStops && supportsGestures == other.supportsGestures && style == other.style;
+    return nativeNodeHandle == other.nativeNodeHandle && positionIndex == other.positionIndex && coordinates == other.coordinates && fragmentUuid == other.fragmentUuid && segmentValues == other.segmentValues && colorRampStops == other.colorRampStops && supportsGestures == other.supportsGestures && style == other.style;
   }
 };
 
@@ -43,6 +44,7 @@ struct NativeLayerPathColorRampCreateLayerParamsBridging {
       bridging::fromJs<decltype(types.nativeNodeHandle)>(rt, value.getProperty(rt, "nativeNodeHandle"), jsInvoker),
       bridging::fromJs<decltype(types.positionIndex)>(rt, value.getProperty(rt, "positionIndex"), jsInvoker),
       bridging::fromJs<decltype(types.coordinates)>(rt, value.getProperty(rt, "coordinates"), jsInvoker),
+      bridging::fromJs<decltype(types.fragmentUuid)>(rt, value.getProperty(rt, "fragmentUuid"), jsInvoker),
       bridging::fromJs<decltype(types.segmentValues)>(rt, value.getProperty(rt, "segmentValues"), jsInvoker),
       bridging::fromJs<decltype(types.colorRampStops)>(rt, value.getProperty(rt, "colorRampStops"), jsInvoker),
       bridging::fromJs<decltype(types.supportsGestures)>(rt, value.getProperty(rt, "supportsGestures"), jsInvoker),
@@ -58,6 +60,9 @@ struct NativeLayerPathColorRampCreateLayerParamsBridging {
     return bridging::toJs(rt, value);
   }
   static jsi::Array coordinatesToJs(jsi::Runtime &rt, decltype(types.coordinates) value) {
+    return bridging::toJs(rt, value);
+  }
+  static jsi::String fragmentUuidToJs(jsi::Runtime &rt, decltype(types.fragmentUuid) value) {
     return bridging::toJs(rt, value);
   }
   static jsi::Array segmentValuesToJs(jsi::Runtime &rt, decltype(types.segmentValues) value) {
@@ -87,6 +92,9 @@ struct NativeLayerPathColorRampCreateLayerParamsBridging {
     }
     if (value.coordinates) {
       result.setProperty(rt, "coordinates", bridging::toJs(rt, value.coordinates.value(), jsInvoker));
+    }
+    if (value.fragmentUuid) {
+      result.setProperty(rt, "fragmentUuid", bridging::toJs(rt, value.fragmentUuid.value(), jsInvoker));
     }
     if (value.segmentValues) {
       result.setProperty(rt, "segmentValues", bridging::toJs(rt, value.segmentValues.value(), jsInvoker));
