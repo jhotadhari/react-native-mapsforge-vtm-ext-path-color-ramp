@@ -3,8 +3,10 @@ package com.jhotadhari.reactnative.mapsforge.vtm.ext.pathcolorramp.modules;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.facebook.proguard.annotations.DoNotStrip;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
@@ -12,6 +14,7 @@ import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.turbomodule.core.interfaces.TurboModule;
 import com.jhotadhari.reactnative.mapsforge.vtm.PathLayerManager;
 import com.jhotadhari.reactnative.mapsforge.vtm.Utils;
 import com.jhotadhari.reactnative.mapsforge.vtm.ext.pathcolorramp.ColorRampPathLayerManager;
@@ -41,7 +44,7 @@ import java.util.UUID;
  * {@code src/NativeModules/NativeLayerPathColorRamp.ts}.
  */
 @ReactModule(name = LayerPathColorRamp.NAME)
-public class LayerPathColorRamp extends NativeLayerPathColorRampSpec {
+public class LayerPathColorRamp extends ReactContextBaseJavaModule implements TurboModule {
 
     public static final String NAME = "LayerPathColorRamp";
 
@@ -68,11 +71,11 @@ public class LayerPathColorRamp extends NativeLayerPathColorRampSpec {
     }
 
     @Override
-    protected Map<String, Object> getTypedExportedConstants() {
+    public Map<String, Object> getConstants() {
         final Map<String, Object> constants = new HashMap<>();
         WritableMap style = new WritableNativeMap();
         style.putDouble("strokeWidth", 4);
-        style.putString("strokeColor", "#ff0000");
+        style.putString("strokeColor", "#ffffff");
         constants.put("style", style);
         WritableMap responseInclude = new WritableNativeMap();
         responseInclude.putInt("coordinates", 0);
@@ -177,7 +180,7 @@ public class LayerPathColorRamp extends NativeLayerPathColorRampSpec {
 
     // ── createLayer ──────────────────────────────────────────────────────
 
-    @Override
+    @ReactMethod
     public void createLayer(ReadableMap params, Promise promise) {
         try {
             if (!Utils.rMapHasKey(params, "nativeNodeHandle")) {
@@ -227,7 +230,7 @@ public class LayerPathColorRamp extends NativeLayerPathColorRampSpec {
 
     // ── removeLayer ──────────────────────────────────────────────────────
 
-    @Override
+    @ReactMethod
     public void removeLayer(ReadableMap params, Promise promise) {
         try {
             if (!Utils.rMapHasKey(params, "uuid")
@@ -249,5 +252,17 @@ public class LayerPathColorRamp extends NativeLayerPathColorRampSpec {
             e.printStackTrace();
             Utils.promiseReject(promise, e.getMessage());
         }
+    }
+
+    @ReactMethod
+    @DoNotStrip
+    public void addListener(String eventName) {
+        // Required by TurboModule spec — no-op for now.
+    }
+
+    @ReactMethod
+    @DoNotStrip
+    public void removeListeners(double count) {
+        // Required by TurboModule spec — no-op for now.
     }
 }

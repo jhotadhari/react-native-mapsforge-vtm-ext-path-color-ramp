@@ -16,8 +16,9 @@ import org.oscim.utils.SpatialIndex;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.oscim.renderer.GLUtils;
 
 import static org.oscim.backend.GLAdapter.gl;
 
@@ -45,10 +46,13 @@ import static org.oscim.backend.GLAdapter.gl;
 public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.vtm.layer.VectorLayer {
 
     /** Maps each LineDrawable to its per-segment normalized values (0–1). */
-    private final Map<Drawable, float[]> drawableValues = new ConcurrentHashMap<>();
+    private final java.util.Map<Drawable, float[]> drawableValues = new ConcurrentHashMap<>();
 
     /** The GL texture ID of the color ramp currently set on this layer. */
     private int mColorRampTexID = 0;
+
+    /** True once the color-ramp texture has been uploaded to GL. */
+    private boolean mColorRampReady = false;
 
     /** Pending pixel data for deferred GL upload (bridge thread → GL thread). */
     private ByteBuffer mPendingRampBuffer = null;
@@ -152,11 +156,11 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
         }
         buffer.flip();
 
-        // Store for deferred upload on the GL thread.
-        synchronized (mPendingLock) {
-            mPendingRampBuffer = buffer;
-            mPendingRampWidth = width;
-            mPendingRampUpload = true;
+        // Store for deferred upload on the GL thread (via LineBucket.Renderer).
+        synchronized (org.oscim.renderer.bucket.LineBucket.Renderer.sPendingLock) {
+            org.oscim.renderer.bucket.LineBucket.Renderer.sPendingRampBuffer = buffer;
+            org.oscim.renderer.bucket.LineBucket.Renderer.sPendingRampWidth = width;
+            org.oscim.renderer.bucket.LineBucket.Renderer.sPendingRampUpload = true;
         }
     }
 
@@ -179,14 +183,17 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
 
         // Delete old texture if one exists.
         if (mColorRampTexID != 0) {
-            int[] tex = {mColorRampTexID};
-            gl.deleteTextures(1, tex, 0);
+            GLUtils.glDeleteTextures(1, new int[]{mColorRampTexID});
         }
 
         // Create new texture on the GL thread.
-        int[] texIds = new int[1];
-        gl.genTextures(1, texIds, 0);
-        mColorRampTexID = texIds[0];
+        // Use IntBuffer version — some GL impls don't properly write to int[] overload.
+        java.nio.IntBuffer texBuf = java.nio.ByteBuffer.allocateDirect(4)
+                .order(java.nio.ByteOrder.nativeOrder())
+                .asIntBuffer();
+        android.opengl.GLES20.glGenTextures(1, texBuf);
+        mColorRampTexID = texBuf.get(0);
+        mColorRampReady = true;
 
         gl.bindTexture(GL.TEXTURE_2D, mColorRampTexID);
         gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR);
@@ -214,23 +221,28 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
             mPendingRampUpload = false;
         }
         if (mColorRampTexID != 0) {
-            int[] tex = {mColorRampTexID};
-            gl.deleteTextures(1, tex, 0);
+            android.opengl.GLES20.glDeleteTextures(1, new int[]{mColorRampTexID}, 0);
             mColorRampTexID = 0;
         }
     }
 
     // ── GL-thread upload hook ──────────────────────────────────────────────
 
+    private static int updateCallCount = 0;
     @Override
     public void update() {
         // Upload pending color-ramp texture before the render pass.
         // This runs on the GL render thread (called from MapRenderer).
         uploadPendingRamp();
+        if (updateCallCount < 3) {
+            updateCallCount++;
+        }
         super.update();
     }
 
     // ── Rendering override ─────────────────────────────────────────────────
+
+    private static int drawCallCount = 0;
 
     @Override
     protected void draw(Task t, int level, Drawable d, Style style) {
@@ -260,14 +272,15 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
         //     a_value / u_colorRamp support. Fall back to standard rendering.
         if (style.stipple != 0 || style.texture != null) {
             super.draw(t, level, new org.oscim.layers.vector.geometries.LineDrawable(
-                    line, style));
+                    line, style), style);
             return;
         }
 
         LineBucket ll = t.buckets.getLineBucket(level);
-        // Set per-bucket color-ramp texture ID so the renderer binds the
-        // correct texture for this layer instance (no longer a global static).
-        ll.mColorRampTexID = mColorRampTexID;
+        // Use the static color-ramp texture uploaded by the GL-thread Renderer.
+        ll.mColorRampTexID = LineBucket.Renderer.sColorRampTexID;
+        ll.mHasColorRamp = (LineBucket.Renderer.sColorRampTexID != 0)
+                || LineBucket.Renderer.sPendingRampUpload;
         if (ll.line == null) {
             ll.line = LineStyle.builder()
                     .reset()

@@ -193,11 +193,13 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                 }
 
                 entrySegmentValues.put(entryUuid, segmentValues);
-                crLayer.update();
             }
+        } else {
         }
 
         // ── Upload color-ramp texture if stops provided ──
+        // setColorRampStops builds the pixel buffer on the bridge thread;
+        // the GL-thread update() call in the next frame uploads it to the GPU.
         if (colorRampStops != null) {
             ColorRampVectorLayer crLayer = (ColorRampVectorLayer)
                     getSharedLayer(result.entry.fragmentUuid);
@@ -326,7 +328,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
     // ── Gesture listener factory ───────────────────────────────────────────
 
     @NonNull
-    private VectorLayer.GestureListener createGestureListener() {
+    protected VectorLayer.GestureListener createGestureListener() {
         return (type, eventParams) -> {
             if (eventCallback == null) return;
             WritableMap payload = new WritableNativeMap();

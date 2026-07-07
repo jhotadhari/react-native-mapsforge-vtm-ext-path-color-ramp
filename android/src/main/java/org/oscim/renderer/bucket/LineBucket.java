@@ -96,7 +96,10 @@ public class LineBucket extends RenderBucket {
     // ── Per-instance color-ramp texture ID ──
     // 0 means no color ramp (use original shaders).
     // Non-zero: bind this 2D RGBA8 texture to unit 1 for the value shader.
+    // Some GL implementations may use texture ID 0 as a valid name,
+    // so mHasColorRamp is the authoritative flag for shader selection.
     public int mColorRampTexID;
+    public boolean mHasColorRamp;
 
     private int tmin = Integer.MIN_VALUE, tmax = Integer.MAX_VALUE;
 
@@ -644,7 +647,7 @@ public class LineBucket extends RenderBucket {
         public boolean useProgram() {
             if (super.useProgram()) {
                 if (aValue >= 0) {
-                    GLState.enableVertexArrays(aPos, aValue, GLState.DISABLED);
+                    GLState.enableVertexArrays(aPos, aValue);
                 } else {
                     GLState.enableVertexArrays(aPos, GLState.DISABLED);
                 }
@@ -694,11 +697,23 @@ public class LineBucket extends RenderBucket {
             valueShaders[1] = new Shader("line_aa_value");
 
             // ── Default 1×1 white ramp texture ──
-            byte[] whitePixel = {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF};
-            mDefaultRampTexID = GLUtils.loadTexture(whitePixel, 1, 1, GL.RGBA,
-                    GL.NEAREST, GL.NEAREST,
-                    GL.CLAMP_TO_EDGE,
-                    GL.CLAMP_TO_EDGE);
+            // GLUtils.loadTexture allocates width×height bytes internally,
+            // which is only correct for single-byte formats like ALPHA,
+            // not RGBA (4 bytes/pixel). Use direct GL calls instead.
+            int[] texIds = GLUtils.glGenTextures(1);
+            mDefaultRampTexID = texIds[0];
+            GLState.bindTex2D(mDefaultRampTexID);
+            GLUtils.setTextureParameter(GL.NEAREST, GL.NEAREST,
+                    GL.CLAMP_TO_EDGE, GL.CLAMP_TO_EDGE);
+            java.nio.ByteBuffer rampBuf = java.nio.ByteBuffer.allocateDirect(4);
+            rampBuf.order(java.nio.ByteOrder.nativeOrder());
+            rampBuf.put((byte) 0xFF);
+            rampBuf.put((byte) 0xFF);
+            rampBuf.put((byte) 0xFF);
+            rampBuf.put((byte) 0xFF);
+            rampBuf.position(0);
+            gl.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, 1, 1, 0,
+                    GL.RGBA, GL.UNSIGNED_BYTE, rampBuf);
 
             /* create lookup table as texture for 'length(0..1,0..1)'
              * using mirrored wrap mode for 'length(-1..1,-1..1)' */
@@ -722,8 +737,46 @@ public class LineBucket extends RenderBucket {
             return true;
         }
 
+        // Pending color-ramp texture data (set by ColorRampVectorLayer from
+        // bridge thread, uploaded here on the GL thread).
+        public static volatile java.nio.ByteBuffer sPendingRampBuffer;
+        public static volatile int sPendingRampWidth;
+        public static volatile boolean sPendingRampUpload;
+        public static final Object sPendingLock = new Object();
+        // Static color-ramp texture ID (uploaded on GL thread).
+        public static int sColorRampTexID;
+
         public static RenderBucket draw(RenderBucket b, GLViewport v,
                                         float scale, RenderBuckets buckets) {
+
+            // ── Upload pending color-ramp texture on the GL thread ──
+            if (sPendingRampUpload) {
+                java.nio.ByteBuffer buffer;
+                int width;
+                synchronized (sPendingLock) {
+                    if (!sPendingRampUpload || sPendingRampBuffer == null) {
+                        buffer = null;
+                        width = 0;
+                    } else {
+                        buffer = sPendingRampBuffer;
+                        width = sPendingRampWidth;
+                        sPendingRampBuffer = null;
+                        sPendingRampUpload = false;
+                    }
+                }
+                if (buffer != null) {
+                    if (sColorRampTexID != 0) {
+                        GLUtils.glDeleteTextures(1, new int[]{sColorRampTexID});
+                    }
+                    int[] texIds = GLUtils.glGenTextures(1);
+                    sColorRampTexID = texIds[0];
+                    GLState.bindTex2D(sColorRampTexID);
+                    GLUtils.setTextureParameter(GL.NEAREST, GL.NEAREST,
+                            GL.CLAMP_TO_EDGE, GL.CLAMP_TO_EDGE);
+                    gl.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, width, 1, 0,
+                            GL.RGBA, GL.UNSIGNED_BYTE, buffer);
+                }
+            }
 
             /* simple line shader does not take forward shortening into
              * account. only used when tilt is 0. */
@@ -745,7 +798,8 @@ public class LineBucket extends RenderBucket {
             int uLineFade = 0, uLineMode = 0, uLineColor = 0;
             int uLineWidth = 0, uLineHeight = 0;
 
-            v.mvp.setAsUniform(s.uMVP);
+            // Deferred to after first shader selection (s may be null here).
+            // v.mvp.setAsUniform(s.uMVP);
 
             /* Line scale factor for non fixed lines: Within a zoom-
              * level lines would be scaled by the factor 2 by view-matrix.
@@ -772,13 +826,20 @@ public class LineBucket extends RenderBucket {
                 LineBucket lb = (LineBucket) b;
 
                 // ── Per-bucket shader selection & texture binding ──
-                boolean useValue = (lb.mColorRampTexID != 0);
+                boolean useValue = (lb.mHasColorRamp && valueShaders[mode] != null);
                 int neededSet = useValue ? 2 : 1;
                 if (neededSet != activeShaderSet) {
                     activeShaderSet = neededSet;
                     Shader[] activeShaders = useValue ? valueShaders : originalShaders;
                     s = activeShaders[mode];
+                    if (s == null) {
+                        // Shader not loaded — fall back to original.
+                        s = originalShaders[mode];
+                        activeShaderSet = 1;
+                        useValue = false;
+                    }
                     s.useProgram();
+                    v.mvp.setAsUniform(s.uMVP);
                     uLineFade = s.uFade;
                     uLineMode = s.uMode;
                     uLineColor = s.uColor;

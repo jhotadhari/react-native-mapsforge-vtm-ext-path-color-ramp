@@ -24,6 +24,7 @@
     "lib",
     "android",
     "!android/build",
+    "react-native.config.js",
     "!**/__tests__",
     "!**/__fixtures__",
     "!**/__mocks__",
@@ -85,6 +86,7 @@
     "react": "19.2.7",
     "react-native": "0.86.0",
     "react-native-builder-bob": "^0.43.0",
+    "react-native-mapsforge-vtm": "file:example/node_modules/react-native-mapsforge-vtm",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
@@ -129,5 +131,8 @@
       "javaPackageName": "com.jhotadhari.reactnative.mapsforge.vtm.ext.pathcolorramp"
     },
     "includesGeneratedCode": true
+  },
+  "dependencies": {
+    "react-native-worklets": "^0.10.1"
   }
 }
