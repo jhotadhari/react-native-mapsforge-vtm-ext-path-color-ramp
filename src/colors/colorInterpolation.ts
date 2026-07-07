@@ -98,7 +98,12 @@ export function colorFromRamp(
 		return rgbToHex(parsed[0]!.r, parsed[0]!.g, parsed[0]!.b);
 	}
 
-	const clamped = Math.max(0, Math.min(1, value));
+	// Clamp to the ramp's value domain, not 0–1, so absolute-value
+	// ramps (e.g. { value: -10, ... } to { value: 10, ... }) work
+	// with the same code as 0–1 ramps.
+	const rampMin = parsed[0]!.value;
+	const rampMax = parsed[parsed.length - 1]!.value;
+	const clamped = Math.max(rampMin, Math.min(rampMax, value));
 
 	// Binary search would be micro-optimisation for 5–20 stops; linear is fine.
 	let lower = parsed[0]!;

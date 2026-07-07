@@ -24,6 +24,8 @@ export interface UsePathColorRampResult {
 	segmentColors: string[];
 	/** Normalized segment values (0–1). */
 	normalizedValues: number[];
+	/** Per-vertex values (0–1, length = coordinates.length) for smooth transitions. */
+	vertexValues: number[];
 	/** The color ramp stop colors used (hex strings). */
 	colorRampStops: string[];
 }
@@ -36,25 +38,6 @@ const DEFAULT_RAMP: ColorRamp = [
 	{ value: 0.75, color: '#5ec962' },
 	{ value: 1.0, color: '#fde725' },
 ];
-
-/** Min and max via manual loop — avoids spread-operator call-stack overflow. */
-function arrayMin(arr: number[]): number {
-	let min = Infinity;
-	for (let i = 0; i < arr.length; i++) {
-		const v = arr[i]!;
-		if (!Number.isNaN(v) && v < min) min = v;
-	}
-	return min;
-}
-
-function arrayMax(arr: number[]): number {
-	let max = -Infinity;
-	for (let i = 0; i < arr.length; i++) {
-		const v = arr[i]!;
-		if (!Number.isNaN(v) && v > max) max = v;
-	}
-	return max;
-}
 
 /**
  * Hook that maps segment data values to per-segment colors using a color ramp.
@@ -84,32 +67,61 @@ export function usePathColorRamp(
 			segmentValues.length > 0 &&
 			segmentValues.length === numSegments
 		) {
-			const min = arrayMin(segmentValues);
-			const max = arrayMax(segmentValues);
-			// If all values are NaN or the array was empty after filtering NaN,
-			// min stays Infinity / max stays -Infinity.
-			if (!isFinite(min) || !isFinite(max)) {
+			// Normalize against the color-ramp's value domain so routes
+			// are visually comparable — a given value always maps to the
+			// same color regardless of the route's own min/max.
+			const rampMin = stops[0]!.value;
+			const rampMax = stops[stops.length - 1]!.value;
+			const rampRange = rampMax - rampMin;
+			if (!isFinite(rampMin) || !isFinite(rampMax) || rampRange === 0) {
 				return new Array(numSegments).fill(0.5);
 			}
-			const range = max - min;
-			if (range === 0) return segmentValues.map(() => 0.5);
-			return segmentValues.map((v) =>
-				Number.isNaN(v) ? 0.5 : (v - min) / range
-			);
+			return segmentValues.map((v) => {
+				if (Number.isNaN(v)) return 0.5;
+				const clamped = Math.max(rampMin, Math.min(rampMax, v));
+				return (clamped - rampMin) / rampRange;
+			});
 		}
 		return new Array(numSegments).fill(0.5);
-	}, [segmentValues, numSegments]);
+	}, [
+		segmentValues,
+		numSegments,
+		stops,
+	]);
 
 	const segmentColors = useMemo(() => {
 		return normalizedValues.map((v) => colorFromRamp(v, stops));
 	}, [normalizedValues, stops]);
 
+	// Per-vertex values: each vertex averages its two adjacent segment values.
+	// Eliminates hard color breaks at segment borders and ensures uniform
+	// color along each segment (both vertices share the averaged value).
+	const vertexValues = useMemo(() => {
+		if (normalizedValues.length === 0) return [];
+		const result: number[] = [];
+		for (let i = 0; i <= normalizedValues.length; i++) {
+			if (i === 0) {
+				result.push(normalizedValues[0]!);
+			} else if (i === normalizedValues.length) {
+				result.push(normalizedValues[normalizedValues.length - 1]!);
+			} else {
+				result.push(
+					(normalizedValues[i - 1]! + normalizedValues[i]!) / 2
+				);
+			}
+		}
+		return result;
+	}, [normalizedValues]);
+
 	const colorRampStops = useMemo(() => {
+		const rampMin = stops[0]!.value;
+		const rampMax = stops[stops.length - 1]!.value;
 		const n = safeNumStops;
-		return new Array(n)
-			.fill(0)
-			.map((_, i) => colorFromRamp(i / (n - 1), stops));
+		return new Array(n).fill(0).map((_, i) => {
+			const t = i / (n - 1);
+			return colorFromRamp(rampMin + t * (rampMax - rampMin), stops);
+		});
 	}, [stops, safeNumStops]);
 
-	return { segmentColors, normalizedValues, colorRampStops };
+	return { segmentColors, normalizedValues, vertexValues, colorRampStops };
 }

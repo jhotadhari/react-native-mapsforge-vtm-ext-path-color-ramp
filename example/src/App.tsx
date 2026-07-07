@@ -579,7 +579,7 @@ export default function App() {
     [
       -68.202233,
       -16.296589,
-      4907.5
+      4908
     ],
     [
       -68.201944,
@@ -884,7 +884,7 @@ export default function App() {
     [
       -68.191287,
       -16.301236,
-      4917.5
+      4918
     ],
     [
       -68.191259,
@@ -894,12 +894,12 @@ export default function App() {
     [
       -68.191238,
       -16.301044,
-      4917.5
+      4918
     ],
     [
       -68.191191,
       -16.30099,
-      4917.5
+      4918
     ],
     [
       -68.190822,
@@ -1179,7 +1179,7 @@ export default function App() {
     [
       -68.180555,
       -16.296907,
-      4957.5
+      4958
     ],
     [
       -68.179164,
@@ -1239,7 +1239,7 @@ export default function App() {
     [
       -68.173874,
       -16.301322,
-      5017.5
+      5018
     ],
     [
       -68.173439,
@@ -1374,7 +1374,7 @@ export default function App() {
     [
       -68.170976,
       -16.297365,
-      5007.5
+      5008
     ],
     [
       -68.170783,
@@ -1459,7 +1459,7 @@ export default function App() {
     [
       -68.165212,
       -16.298456,
-      4977.5
+      4978
     ],
     [
       -68.164869,
@@ -1619,7 +1619,7 @@ export default function App() {
     [
       -68.157719,
       -16.302314,
-      4887.5
+      4888
     ],
     [
       -68.157203,
@@ -1854,7 +1854,7 @@ export default function App() {
     [
       -68.156262,
       -16.315735,
-      4617.5
+      4618
     ],
     [
       -68.156143,
@@ -1996,14 +1996,18 @@ export default function App() {
   const defaultCenter = useMemo( () => coordinates[Math.floor(coordinates.length/2)].slice(0,2) as [number, number], [coordinates]);
 
   const slopeValues = calculateSlope(coordinates);
-  const { segmentColors, colorRampStops } = usePathColorRamp({
+
+
+  console.log( 'debug slopeValues', slopeValues ); // debug
+
+
+  const { segmentColors, colorRampStops, normalizedValues } = usePathColorRamp({
     coordinates,
     segmentValues: slopeValues,
-    // Override with very bright/obvious colors for testing.
     colorRamp: [
-      { value: 0, color: '#ff0000' },
-      { value: 0.5, color: '#00ff00' },
-      { value: 1.0, color: '#0000ff' },
+      { value: -8, color: '#0000ff' },
+      { value: 0, color: '#00ff00' },
+      { value: 8, color: '#ff0000' },
     ],
   });
 
@@ -2019,7 +2023,7 @@ export default function App() {
         {coordinates.length > 0 && (
           <LayerPathColorRamp
             coordinates={coordinates}
-            segmentValues={slopeValues}
+            segmentValues={normalizedValues}
             colorRampStops={colorRampStops}
             style={{ strokeWidth: 6, strokeColor: '#ffffff' }}
           />

@@ -364,9 +364,11 @@ public class LineBucket extends RenderBucket {
         /* when the endpoint is outside the tile region omit round caps. */
         boolean outside = (curX < tmin || curX > tmax || curY < tmin || curY > tmax);
 
-        // First-segment value (or 0.5f if no values array).
-        float startVal = (values != null && valueOffset < values.length)
-                ? values[valueOffset] : 0.5f;
+        // First-vertex value (or 0.5f if no values array).
+        // Each segment now receives 2 values (start, end) for smooth
+        // per-vertex interpolation across segment borders.
+        float startVal = (values != null && values.length > 0)
+                ? values[0] : 0.5f;
         short svStart = (short) (startVal * 32767);
 
         if (rounded && !outside) {
@@ -477,10 +479,10 @@ public class LineBucket extends RenderBucket {
 
             double dotp = (vNextX * vPrevX + vNextY * vPrevY);
 
-            // Value for this point: the incoming segment's value.
-            int curValIdx = valueOffset + segmentIndex - 1;
-            float curVal = (values != null && curValIdx >= 0 && curValIdx < values.length)
-                    ? values[curValIdx] : 0.5f;
+            // Value for this vertex: use the last value in the array
+            // (the end-vertex value for this segment).
+            float curVal = (values != null && values.length > 0)
+                    ? values[values.length - 1] : 0.5f;
 
             if (dotp > 0.65) {
                 /* add bevel join to avoid miter going to infinity */
@@ -552,10 +554,9 @@ public class LineBucket extends RenderBucket {
         ox = (short) (curX * COORD_SCALE);
         oy = (short) (curY * COORD_SCALE);
 
-        // Last-segment value.
-        int lastValIdx = valueOffset + segmentIndex - 1;
-        float lastVal = (values != null && lastValIdx >= 0 && lastValIdx < values.length)
-                ? values[lastValIdx] : 0.5f;
+        // Last-vertex value: use the last value in the array (end vertex).
+        float lastVal = (values != null && values.length > 0)
+                ? values[values.length - 1] : 0.5f;
         short svLast = (short) (lastVal * 32767);
 
         if (rounded && !outside) {

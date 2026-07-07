@@ -28,8 +28,7 @@ export function calculateSlope(coordinates: Position[]): number[] {
 			slopes.push(0);
 			continue;
 		}
-		const slopeDeg =
-			Math.atan(Math.abs(elevDelta) / horizDist) * (180 / Math.PI);
+		const slopeDeg = Math.atan(elevDelta / horizDist) * (180 / Math.PI);
 		slopes.push(slopeDeg);
 	}
 	return slopes;
