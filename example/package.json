@@ -12,7 +12,8 @@
     "react-native": "0.86.0",
     "react-native-mapsforge-vtm": "file:.yalc/react-native-mapsforge-vtm",
     "react-native-mapsforge-vtm-ext-path-color-ramp": "file:.yalc/react-native-mapsforge-vtm-ext-path-color-ramp",
-    "react-native-reanimated": ">=3.0.0"
+    "react-native-reanimated": ">=3.0.0",
+    "react-native-worklets": "^0.10.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

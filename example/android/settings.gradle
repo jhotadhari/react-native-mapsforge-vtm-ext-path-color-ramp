@@ -4,3 +4,8 @@ extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autoli
 rootProject.name = 'MapsforgeVtmExtPathColorRampExample'
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
+
+// Point directly at the source android/ dir so Gradle always compiles the
+// latest Java sources — no yalc/node_modules syncing needed.
+include ':react-native-mapsforge-vtm-ext-path-color-ramp'
+project(':react-native-mapsforge-vtm-ext-path-color-ramp').projectDir = new File(rootProject.projectDir, '../../android')
