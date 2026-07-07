@@ -54,6 +54,11 @@ src/**/*.d.ts.map
 # React Native Codegen
 android/generated
 
+# Android / Gradle build outputs
+android/build/
+example/android/build/
+example/android/app/build/
+
 # yalc
 .yalc/
 yalc.lock
