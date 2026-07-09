@@ -83,6 +83,28 @@ public class ColorRampPathLayerManager extends PathLayerManager {
         super(nativeNodeHandle, mapView, name);
     }
 
+    // ── Style default override ────────────────────────────────────────────
+
+    /**
+     * Overrides the parent's default strokeColor from red ({@code #ff0000})
+     * to white ({@code #ffffff}) so the colour-ramp shader's
+     * {@code u_color * texture2D(...)} multiplication passes the ramp
+     * colour through unchanged.
+     */
+    @NonNull
+    @Override
+    protected Style.Builder getStyleBuilder(@Nullable ReadableMap styleMap) {
+        if (styleMap != null && styleMap.hasKey("strokeColor")) {
+            return super.getStyleBuilder(styleMap);
+        }
+        WritableMap merged = new WritableNativeMap();
+        if (styleMap != null) {
+            merged.merge(styleMap);
+        }
+        merged.putString("strokeColor", "#ffffff");
+        return super.getStyleBuilder(merged);
+    }
+
     // ── LayerManager overrides ─────────────────────────────────────────────
 
     @NonNull

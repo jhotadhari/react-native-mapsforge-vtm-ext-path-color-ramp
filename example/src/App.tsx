@@ -2005,9 +2005,12 @@ export default function App() {
     coordinates,
     segmentValues: slopeValues,
     colorRamp: [
-      { value: -8, color: '#0000ff' },
+      { value: -20, color: '#1a0000' }, // 10% red
+      { value: -13, color: '#4d0000' }, // 30% red
+      { value: -8, color: '#0000ff' },  // 100% red
       { value: 0, color: '#00ff00' },
-      { value: 8, color: '#ff0000' },
+      { value: 13, color: '#004d00' },
+      { value: 20, color: '#001a00' },
     ],
   });
 
@@ -2025,7 +2028,7 @@ export default function App() {
             coordinates={coordinates}
             segmentValues={normalizedValues}
             colorRampStops={colorRampStops}
-            style={{ strokeWidth: 6 }}
+            style={{ strokeWidth: 6, strokeColor: '#ffffff' }}
           />
         )}
       </MapContainer>
