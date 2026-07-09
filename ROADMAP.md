@@ -37,6 +37,6 @@ Android only — iOS support is out of scope permanently.
 
 ## Next
 
-- [ ] Write tests for JS utilities (`usePathColorRamp`, `colorInterpolation`, `slope`, `elevation`)
+- [x] Write tests for JS utilities (`usePathColorRamp`, `colorInterpolation`, `slope`, `elevation`)
 - [x] Add README usage examples (vertex-gradient mode, blend zones, metric toggle, color ramps)
 - [ ] Investigate VBO stride concern: `VERTEX_CNT[LINE] = 5` affects all line buckets — could regular paths and color-ramp paths sharing a frame cause stride misalignment?
