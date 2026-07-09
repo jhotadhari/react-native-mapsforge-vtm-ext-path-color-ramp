@@ -7,12 +7,16 @@ function percentToDeg(pct: number): number {
 	return (Math.atan(pct / 100) * 180) / Math.PI;
 }
 
-/** Normalise all ramp stops to degrees so segment values (always °) can be
+/** Normalize all ramp stops to degrees so segment values (always °) can be
  *  compared against a consistent domain regardless of the stops' unit. */
 function stopsToDegrees(stops: ColorRamp): ColorRamp {
 	return stops.map((s) =>
 		s.unit === 'percent'
-			? { value: percentToDeg(s.value), color: s.color }
+			? {
+					value: percentToDeg(s.value),
+					color: s.color,
+					unit: 'degree' as const,
+				}
 			: s
 	);
 }
@@ -44,12 +48,16 @@ export interface UsePathColorRampResult {
 }
 
 /** Built-in default ramp used when no colorRamp prop is supplied. */
-const DEFAULT_RAMP: ColorRamp = [
-	{ value: 0, color: '#440154' },
-	{ value: 0.25, color: '#3b528b' },
-	{ value: 0.5, color: '#21918c' },
-	{ value: 0.75, color: '#5ec962' },
-	{ value: 1.0, color: '#fde725' },
+export const DEFAULT_RAMP: ColorRamp = [
+	{ value: -22, color: '#00004d', unit: 'percent' }, // 30% blue
+	{ value: -13, color: '#000080', unit: 'percent' }, // 50% blue
+	{ value: -8, color: '#0000ff', unit: 'percent' }, // 100% blue
+	{ value: -3, color: '#00e8ff', unit: 'percent' }, // light blue
+	{ value: 0, color: '#00ff00' }, // green
+	{ value: 3, color: '#FFDE02', unit: 'percent' }, // yellow
+	{ value: 8, color: '#ff0000', unit: 'percent' }, // 100% red
+	{ value: 13, color: '#800000', unit: 'percent' }, // 50% red
+	{ value: 22, color: '#4d0000', unit: 'percent' }, // 30% red
 ];
 
 /**

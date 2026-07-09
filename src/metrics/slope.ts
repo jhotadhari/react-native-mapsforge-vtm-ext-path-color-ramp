@@ -25,7 +25,7 @@ export interface SlopeOptions {
 	/**
 	 * Fill missing ({@code null} / {@code undefined}) elevation values by
 	 * searching outward from each gap and interpolating between the nearest
-	 * valid neighbours.  Gaps wider than 200 m are left as-is.
+	 * valid neighbours.  Gaps wider than 40 index positions (~200 m at 5 m spacing) are left as-is.
 	 * @default true
 	 */
 	fillElevationGaps?: boolean;
@@ -173,7 +173,7 @@ function cumulativeDistances(coordinates: Position[]): number[] {
  * 5-point centred moving average.  Boundary points (first 2, last 2) are
  * averaged over the available window (3 or 4 points).  NaN values are
  * skipped in the averaging; if all points in the window are NaN the
- * output is NaN.
+ * output is 0.
  */
 function smoothArray(arr: readonly (number | undefined | null)[]): number[] {
 	const result: number[] = [];
@@ -196,7 +196,7 @@ function smoothArray(arr: readonly (number | undefined | null)[]): number[] {
 
 /**
  * Fill missing ({@code null}, {@code undefined}, NaN) elevation values
- * by searching outward (up to 200 m) for the nearest valid neighbours
+ * by searching outward (up to 40 index positions) for the nearest valid neighbours
  * and interpolating.  Mirrors the approach in OsmAnd's
  * {@code RouteColorize.correctElevations()}.
  */

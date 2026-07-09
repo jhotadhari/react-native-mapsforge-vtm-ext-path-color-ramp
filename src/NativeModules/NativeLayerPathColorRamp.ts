@@ -54,7 +54,7 @@ interface CreateLayerParams {
 	fragmentUuid?: string;
 	segmentValues?: ReadonlyArray<Double>;
 	colorRampStops?: ReadonlyArray<string>;
-	/** Fraction of each segment used for color blending at borders (0–0.5, default 0.15). */
+	/** Fraction of each segment used for color blending at borders (0–0.45, default 0.15). */
 	blendRatio?: Double;
 	supportsGestures?: boolean;
 	style?: GeometryStyle;
@@ -78,7 +78,7 @@ export type LayerPathColorRampProps = {
 	coordinates?: GeoJsonPosition[];
 	segmentValues?: number[];
 	colorRampStops?: string[];
-	/** Fraction of each segment used for color blending at borders (0–0.5, default 0.15). */
+	/** Fraction of each segment used for color blending at borders (0–0.45, default 0.15). */
 	blendRatio?: number;
 	style?: GeometryStyle;
 	onCreate?: null | ((response: LayerPathColorRampResponse) => void);

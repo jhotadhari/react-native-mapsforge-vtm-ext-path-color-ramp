@@ -203,8 +203,9 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
         // Use the static color-ramp texture uploaded by the GL-thread Renderer.
         // mHasColorRamp is only set when the texture has actually been uploaded
         // (sColorRampTexID != 0), avoiding first-frame texture-0 binding.
-        ll.mColorRampTexID = LineBucket.Renderer.sColorRampTexID;
-        ll.mHasColorRamp = (LineBucket.Renderer.sColorRampTexID != 0);
+        int texID = LineBucket.Renderer.sColorRampTexID;
+        ll.mColorRampTexID = texID;
+        ll.mHasColorRamp = (texID != 0);
         if (ll.line == null) {
             ll.line = LineStyle.builder()
                     .reset()

@@ -177,6 +177,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                 // Remove plain drawables, re-add with values.
                 for (LineDrawable d : entry.drawables) {
                     crLayer.remove(d);
+                    drawableToEntry.remove(d);
                 }
                 entry.drawables.clear();
 
@@ -237,6 +238,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                 }
 
                 entrySegmentValues.put(entryUuid, segmentValues);
+                crLayer.update();
             }
         } else {
         }
@@ -303,6 +305,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                 // Remove parent's plain drawables.
                 for (LineDrawable d : entry.drawables) {
                     crLayer.remove(d);
+                    drawableToEntry.remove(d);
                 }
                 entry.drawables.clear();
 
