@@ -38,27 +38,20 @@ import static org.oscim.backend.GLAdapter.gl;
  *       {@link #drawLineWithValues(Task, int, Geometry, Style, float[])} which
  *       passes values to the shadowed {@link LineBucket#addLine(float[], int[], int, boolean, float[])}
  *       overload.</li>
- *   <li>The color-ramp texture (stored as a static field on
- *       {@link LineBucket.Renderer#mColorRampTexID}) is bound by the shadowed
- *       renderer during the next frame.</li>
+ *   <li>The color-ramp texture is uploaded on the GL thread by
+ *       {@link LineBucket.Renderer#draw} from a static volatile buffer
+ *       set by {@link #setColorRampStops} on the bridge thread.</li>
  * </ol>
+ *
+ * <p><b>Limitation:</b> the color-ramp texture is a single static singleton
+ * ({@link LineBucket.Renderer#sColorRampTexID}).  Only one color ramp can be
+ * active per MapView at a time.  Multiple layers with different ramps will
+ * all render with the most recently uploaded ramp.
  */
 public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.vtm.layer.VectorLayer {
 
     /** Maps each LineDrawable to its per-segment normalized values (0–1). */
     private final java.util.Map<Drawable, float[]> drawableValues = new ConcurrentHashMap<>();
-
-    /** The GL texture ID of the color ramp currently set on this layer. */
-    private int mColorRampTexID = 0;
-
-    /** True once the color-ramp texture has been uploaded to GL. */
-    private boolean mColorRampReady = false;
-
-    /** Pending pixel data for deferred GL upload (bridge thread → GL thread). */
-    private ByteBuffer mPendingRampBuffer = null;
-    private int mPendingRampWidth = 0;
-    private volatile boolean mPendingRampUpload = false;
-    private final Object mPendingLock = new Object();
 
     // ── Constructors ──────────────────────────────────────────────────────
 
@@ -105,18 +98,14 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
 
     /**
      * Builds a 256×1 RGBA8 pixel array from an array of hex color stops
-     * (e.g. {@code "#440154"}) and defers the GPU upload to the next
-     * {@link #update()} call, which runs on the GL render thread.
+     * (e.g. {@code "#440154"}) and defers the GPU upload to the GL thread.
      *
-     * <p>OpenGL calls must happen on the GL thread. Since this method is
-     * called from the React Native bridge thread (via the TurboModule),
-     * we only build the pixel buffer here and set a flag. The actual
-     * {@code glGenTextures} / {@code glTexImage2D} happens in
-     * {@link #uploadPendingRamp()}, invoked from {@link #update()}.
-     *
-     * <p>Once uploaded, the texture ID is stored in this layer instance and
-     * written to each {@link LineBucket} during
-     * {@link #drawLineWithValues(Task, int, Geometry, Style, float[])}.
+     * <p>OpenGL calls must happen on the GL thread.  We build the pixel
+     * buffer here (bridge thread) and store it in a static volatile field
+     * on {@link LineBucket.Renderer}.  The next
+     * {@link LineBucket.Renderer#draw} call (GL thread) picks it up,
+     * creates the GL texture, and stores the ID in
+     * {@link LineBucket.Renderer#sColorRampTexID}.
      *
      * @param colorRampStops array of hex color strings (at least 2)
      */
@@ -165,84 +154,18 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
     }
 
     /**
-     * Uploads the pending color-ramp pixel data to a GL texture.
-     * Must be called from the GL render thread (via {@link #update()}).
-     */
-    private void uploadPendingRamp() {
-        ByteBuffer buffer;
-        int width;
-        synchronized (mPendingLock) {
-            if (!mPendingRampUpload || mPendingRampBuffer == null) {
-                return;
-            }
-            buffer = mPendingRampBuffer;
-            width = mPendingRampWidth;
-            mPendingRampBuffer = null;
-            mPendingRampUpload = false;
-        }
-
-        // Delete old texture if one exists.
-        if (mColorRampTexID != 0) {
-            GLUtils.glDeleteTextures(1, new int[]{mColorRampTexID});
-        }
-
-        // Create new texture on the GL thread.
-        // Use IntBuffer version — some GL impls don't properly write to int[] overload.
-        java.nio.IntBuffer texBuf = java.nio.ByteBuffer.allocateDirect(4)
-                .order(java.nio.ByteOrder.nativeOrder())
-                .asIntBuffer();
-        android.opengl.GLES20.glGenTextures(1, texBuf);
-        mColorRampTexID = texBuf.get(0);
-        mColorRampReady = true;
-
-        gl.bindTexture(GL.TEXTURE_2D, mColorRampTexID);
-        gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR);
-        gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.LINEAR);
-        gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.CLAMP_TO_EDGE);
-        gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE);
-        gl.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, width, 1, 0,
-                GL.RGBA, GL.UNSIGNED_BYTE, buffer);
-    }
-
-    /**
-     * Returns the current color-ramp texture ID, or 0 if not set.
-     */
-    public int getColorRampTexID() {
-        return mColorRampTexID;
-    }
-
-    /**
      * Releases the color-ramp texture. Call when the layer is destroyed.
      * Must be called from the GL render thread.
      */
     public void releaseColorRampTexture() {
-        synchronized (mPendingLock) {
-            mPendingRampBuffer = null;
-            mPendingRampUpload = false;
+        int texID = LineBucket.Renderer.sColorRampTexID;
+        if (texID != 0) {
+            GLUtils.glDeleteTextures(1, new int[]{texID});
+            LineBucket.Renderer.sColorRampTexID = 0;
         }
-        if (mColorRampTexID != 0) {
-            android.opengl.GLES20.glDeleteTextures(1, new int[]{mColorRampTexID}, 0);
-            mColorRampTexID = 0;
-        }
-    }
-
-    // ── GL-thread upload hook ──────────────────────────────────────────────
-
-    private static int updateCallCount = 0;
-    @Override
-    public void update() {
-        // Upload pending color-ramp texture before the render pass.
-        // This runs on the GL render thread (called from MapRenderer).
-        uploadPendingRamp();
-        if (updateCallCount < 3) {
-            updateCallCount++;
-        }
-        super.update();
     }
 
     // ── Rendering override ─────────────────────────────────────────────────
-
-    private static int drawCallCount = 0;
 
     @Override
     protected void draw(Task t, int level, Drawable d, Style style) {
@@ -278,9 +201,10 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
 
         LineBucket ll = t.buckets.getLineBucket(level);
         // Use the static color-ramp texture uploaded by the GL-thread Renderer.
+        // mHasColorRamp is only set when the texture has actually been uploaded
+        // (sColorRampTexID != 0), avoiding first-frame texture-0 binding.
         ll.mColorRampTexID = LineBucket.Renderer.sColorRampTexID;
-        ll.mHasColorRamp = (LineBucket.Renderer.sColorRampTexID != 0)
-                || LineBucket.Renderer.sPendingRampUpload;
+        ll.mHasColorRamp = (LineBucket.Renderer.sColorRampTexID != 0);
         if (ll.line == null) {
             ll.line = LineStyle.builder()
                     .reset()
@@ -309,12 +233,13 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
                     Math.max(t.position.getZoom() - 12, 0));
 
         for (int i = 0; i < line.getNumGeometries(); i++) {
-            mConverter.transformLineString(mGeom.clear(),
-                    (org.locationtech.jts.geom.LineString) line.getGeometryN(i));
+            org.locationtech.jts.geom.LineString ls =
+                    (org.locationtech.jts.geom.LineString) line.getGeometryN(i);
+            mConverter.transformLineString(mGeom.clear(), ls);
+
             if (!mClipper.clip(mGeom))
                 continue;
 
-            // ── Use shadowed addLine with per-segment values ──
             ll.addLine(mGeom.points, mGeom.index, -1, false, values);
         }
     }

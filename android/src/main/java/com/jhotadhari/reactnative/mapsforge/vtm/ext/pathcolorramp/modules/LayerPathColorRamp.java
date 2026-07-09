@@ -76,6 +76,7 @@ public class LayerPathColorRamp extends ReactContextBaseJavaModule implements Tu
         WritableMap style = new WritableNativeMap();
         style.putDouble("strokeWidth", 4);
         style.putString("strokeColor", "#ffffff");
+        style.putString("cap", "BUTT");
         constants.put("style", style);
         WritableMap responseInclude = new WritableNativeMap();
         responseInclude.putInt("coordinates", 0);

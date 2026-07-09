@@ -24,8 +24,6 @@ export interface UsePathColorRampResult {
 	segmentColors: string[];
 	/** Normalized segment values (0–1). */
 	normalizedValues: number[];
-	/** Per-vertex values (0–1, length = coordinates.length) for smooth transitions. */
-	vertexValues: number[];
 	/** The color ramp stop colors used (hex strings). */
 	colorRampStops: string[];
 }
@@ -59,7 +57,10 @@ export function usePathColorRamp(
 	const numSegments = Math.max(0, coordinates.length - 1);
 	const safeNumStops = numStops < 2 ? 2 : numStops;
 
-	const stops = useMemo(() => colorRamp ?? DEFAULT_RAMP, [colorRamp]);
+	const stops = useMemo(() => {
+		const ramp = colorRamp ?? DEFAULT_RAMP;
+		return ramp.length >= 2 ? ramp : DEFAULT_RAMP;
+	}, [colorRamp]);
 
 	const normalizedValues = useMemo(() => {
 		if (
@@ -90,28 +91,14 @@ export function usePathColorRamp(
 	]);
 
 	const segmentColors = useMemo(() => {
-		return normalizedValues.map((v) => colorFromRamp(v, stops));
+		const rampMin = stops[0]!.value;
+		const rampMax = stops[stops.length - 1]!.value;
+		return normalizedValues.map((v) =>
+			// Map the 0-1 normalized value back to the ramp domain so
+			// colorFromRamp's absolute-value interpolation is correct.
+			colorFromRamp(rampMin + v * (rampMax - rampMin), stops)
+		);
 	}, [normalizedValues, stops]);
-
-	// Per-vertex values: each vertex averages its two adjacent segment values.
-	// Eliminates hard color breaks at segment borders and ensures uniform
-	// color along each segment (both vertices share the averaged value).
-	const vertexValues = useMemo(() => {
-		if (normalizedValues.length === 0) return [];
-		const result: number[] = [];
-		for (let i = 0; i <= normalizedValues.length; i++) {
-			if (i === 0) {
-				result.push(normalizedValues[0]!);
-			} else if (i === normalizedValues.length) {
-				result.push(normalizedValues[normalizedValues.length - 1]!);
-			} else {
-				result.push(
-					(normalizedValues[i - 1]! + normalizedValues[i]!) / 2
-				);
-			}
-		}
-		return result;
-	}, [normalizedValues]);
 
 	const colorRampStops = useMemo(() => {
 		const rampMin = stops[0]!.value;
@@ -123,5 +110,5 @@ export function usePathColorRamp(
 		});
 	}, [stops, safeNumStops]);
 
-	return { segmentColors, normalizedValues, vertexValues, colorRampStops };
+	return { segmentColors, normalizedValues, colorRampStops };
 }

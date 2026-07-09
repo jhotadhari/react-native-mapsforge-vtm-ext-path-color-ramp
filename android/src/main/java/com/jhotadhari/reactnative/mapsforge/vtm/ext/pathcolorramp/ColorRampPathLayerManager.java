@@ -173,10 +173,11 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                             + ") for entry " + entryUuid
                             + "; values will be mismatched");
                 }
-                // Pre-compute per-vertex values by averaging adjacent
-                // segment values. Eliminates hard color breaks at segment
-                // borders and ensures both vertices of a segment use
-                // the segment's value (no more green-start artifact).
+                // Pre-compute per-vertex values. Each vertex connecting
+                // two segments blends those segments' values. The blend
+                // strength is controlled by BLEND_LENGTH_M: segments
+                // shorter than this blend fully; longer segments keep
+                // more of their own colour through the middle.
                 float[] vertexVals = new float[coords.length];
                 for (int i = 0; i < coords.length; i++) {
                     if (i == 0) {
@@ -190,7 +191,12 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                                 ? segmentValues[i - 1] : 0.5f;
                         float b = i < segmentValues.length
                                 ? segmentValues[i] : 0.5f;
-                        vertexVals[i] = (a + b) / 2f;
+
+                        // Simple average of adjacent segment values at
+                        // connecting vertices.  The GPU linearly interpolates
+                        // between start and end vertices within each segment,
+                        // producing a smooth gradient.
+                        vertexVals[i] = (a + b) / 2.0f;
                     }
                 }
                 for (int i = 0; i < coords.length; i++) {
@@ -297,6 +303,24 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                             + ") for entry " + entry.pathUuid
                             + " in updateEntry; values will be mismatched");
                 }
+                // Per-vertex averaging — mirrors createEntry() so updates
+                // produce the same smooth gradients as initial creation.
+                float[] vertexVals = new float[coords.length];
+                for (int i = 0; i < coords.length; i++) {
+                    if (i == 0) {
+                        vertexVals[i] = segmentValues.length > 0
+                                ? segmentValues[0] : 0.5f;
+                    } else if (i == coords.length - 1) {
+                        vertexVals[i] = segmentValues.length > 0
+                                ? segmentValues[segmentValues.length - 1] : 0.5f;
+                    } else {
+                        float a = (i - 1) < segmentValues.length
+                                ? segmentValues[i - 1] : 0.5f;
+                        float b = i < segmentValues.length
+                                ? segmentValues[i] : 0.5f;
+                        vertexVals[i] = (a + b) / 2.0f;
+                    }
+                }
                 for (int i = 0; i < coords.length; i++) {
                     if (i != 0) {
                         double[] segment = new double[4];
@@ -308,10 +332,8 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                                 segment, style);
                         drawable.setPriority(entry.positionIndex);
 
-                        float val = (i - 1) < segmentValues.length
-                                ? segmentValues[i - 1] : 0.5f;
                         crLayer.addLineDrawableWithValues(drawable,
-                                new float[]{val});
+                                new float[]{vertexVals[i - 1], vertexVals[i]});
                         entry.drawables.add(drawable);
                     }
                 }
@@ -372,4 +394,5 @@ public class ColorRampPathLayerManager extends PathLayerManager {
             eventCallback.emit("onPathEvent", payload);
         };
     }
+
 }

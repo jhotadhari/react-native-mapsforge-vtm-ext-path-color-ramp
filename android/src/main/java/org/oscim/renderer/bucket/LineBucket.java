@@ -479,10 +479,17 @@ public class LineBucket extends RenderBucket {
 
             double dotp = (vNextX * vPrevX + vNextY * vPrevY);
 
-            // Value for this vertex: use the last value in the array
-            // (the end-vertex value for this segment).
-            float curVal = (values != null && values.length > 0)
-                    ? values[values.length - 1] : 0.5f;
+            // Value for this vertex: interpolate between the start and
+            // end values so the colour gradient spans the whole segment.
+            float curVal = 0.5f;
+            if (values != null && values.length > 0) {
+                if (values.length == 1) {
+                    curVal = values[0];
+                } else {
+                    // Midpoint between start and end vertex values.
+                    curVal = (values[0] + values[values.length - 1]) / 2.0f;
+                }
+            }
 
             if (dotp > 0.65) {
                 /* add bevel join to avoid miter going to infinity */
@@ -744,8 +751,9 @@ public class LineBucket extends RenderBucket {
         public static volatile int sPendingRampWidth;
         public static volatile boolean sPendingRampUpload;
         public static final Object sPendingLock = new Object();
-        // Static color-ramp texture ID (uploaded on GL thread).
-        public static int sColorRampTexID;
+        // Static color-ramp texture ID (uploaded on GL thread, read by both
+        // GL and bridge threads — must be volatile for cross-thread visibility).
+        public static volatile int sColorRampTexID;
 
         public static RenderBucket draw(RenderBucket b, GLViewport v,
                                         float scale, RenderBuckets buckets) {
