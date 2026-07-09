@@ -423,16 +423,16 @@ public class ColorRampPathLayerManager extends PathLayerManager {
         double mx2 = c0.x + (c1.x - c0.x) * (1.0 - t);
         double my2 = c0.y + (c1.y - c0.y) * (1.0 - t);
 
-        // Pure (long) zone gets base priority so it renders below the
-        // shorter blend zones.  Blend zones use +1 to render on top.
+        // Pure (long) zone gets higher priority so it renders above the
+        // shorter blend zones.
         int basePrio = entry.positionIndex * 2;
-        int blendPrio = basePrio + 1;
+        int purePrio = basePrio + 1;
 
         // Entry blend zone: c0 → mid1.
         // Effective gradient (start→end): startVal → segVal.
         double[] entrySeg = new double[]{mx1, my1, c0.x, c0.y};
         LineDrawable entryD = new LineDrawable(entrySeg, style);
-        entryD.setPriority(blendPrio);
+        entryD.setPriority(basePrio);
         crLayer.addLineDrawableWithValues(entryD,
                 new float[]{segVal, startVal});
         entry.drawables.add(entryD);
@@ -441,7 +441,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
         // Effective gradient (start→end): segVal → segVal.
         double[] pureSeg = new double[]{mx2, my2, mx1, my1};
         LineDrawable pureD = new LineDrawable(pureSeg, style);
-        pureD.setPriority(basePrio);
+        pureD.setPriority(purePrio);
         crLayer.addLineDrawableWithValues(pureD,
                 new float[]{segVal, segVal});
         entry.drawables.add(pureD);
@@ -450,7 +450,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
         // Effective gradient (start→end): segVal → endVal.
         double[] exitSeg = new double[]{c1.x, c1.y, mx2, my2};
         LineDrawable exitD = new LineDrawable(exitSeg, style);
-        exitD.setPriority(blendPrio);
+        exitD.setPriority(basePrio);
         crLayer.addLineDrawableWithValues(exitD,
                 new float[]{endVal, segVal});
         entry.drawables.add(exitD);
