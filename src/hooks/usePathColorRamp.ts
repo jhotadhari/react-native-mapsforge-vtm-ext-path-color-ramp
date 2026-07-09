@@ -2,6 +2,21 @@ import { useMemo } from 'react';
 import { colorFromRamp } from '../colors/colorInterpolation';
 import type { ColorRamp } from '../metrics/types';
 
+/** Convert percent (grade) to degrees: atan(percent/100) * 180/π. */
+function percentToDeg(pct: number): number {
+	return (Math.atan(pct / 100) * 180) / Math.PI;
+}
+
+/** Normalise all ramp stops to degrees so segment values (always °) can be
+ *  compared against a consistent domain regardless of the stops' unit. */
+function stopsToDegrees(stops: ColorRamp): ColorRamp {
+	return stops.map((s) =>
+		s.unit === 'percent'
+			? { value: percentToDeg(s.value), color: s.color }
+			: s
+	);
+}
+
 export interface UsePathColorRampOptions {
 	coordinates: Array<
 		| readonly [number, number]
@@ -59,7 +74,8 @@ export function usePathColorRamp(
 
 	const stops = useMemo(() => {
 		const ramp = colorRamp ?? DEFAULT_RAMP;
-		return ramp.length >= 2 ? ramp : DEFAULT_RAMP;
+		const chosen = ramp.length >= 2 ? ramp : DEFAULT_RAMP;
+		return stopsToDegrees(chosen);
 	}, [colorRamp]);
 
 	const normalizedValues = useMemo(() => {

@@ -2005,12 +2005,13 @@ export default function App() {
     coordinates,
     segmentValues: slopeValues,
     colorRamp: [
-      { value: -20, color: '#1a0000' }, // 10% red
-      { value: -13, color: '#4d0000' }, // 30% red
-      { value: -8, color: '#0000ff' },  // 100% red
-      { value: 0, color: '#00ff00' },
-      { value: 13, color: '#004d00' },
-      { value: 20, color: '#001a00' },
+      { value: -20, color: '#00001a', unit: 'percent' }, // 10% blue
+      { value: -13, color: '#00004d', unit: 'percent' }, // 30% blue
+      { value: -8, color: '#0000ff', unit: 'percent' },  // 100% blue
+      { value: 0, color: '#00ff00', unit: 'percent' }, // green
+      { value: 8, color: '#ff0000', unit: 'percent' }, // 100% red
+      { value: 13, color: '#4d0000', unit: 'percent' },  // 30% red
+      { value: 20, color: '#1a0000', unit: 'percent' },  // 10% red
     ],
   });
 

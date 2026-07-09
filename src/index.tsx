@@ -15,4 +15,9 @@ export { default as colorRamps } from './colors/colorRamps';
 export { interpolateColor } from './colors/colorInterpolation';
 export { calculateSlope } from './metrics/slope';
 export { extractElevation } from './metrics/elevation';
-export type { ColorRamp, ColorRampStop, SegmentValues } from './metrics/types';
+export type {
+	ColorRamp,
+	ColorRampStop,
+	RampUnit,
+	SegmentValues,
+} from './metrics/types';

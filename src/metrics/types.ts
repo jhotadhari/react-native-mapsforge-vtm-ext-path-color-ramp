@@ -1,7 +1,13 @@
-/** A single stop in a color ramp: value (0–1) → color (hex). */
+/** Unit for colour-ramp stop values. */
+export type RampUnit = 'degree' | 'percent';
+
+/** A single stop in a color ramp. */
 export interface ColorRampStop {
 	value: number;
 	color: `#${string}`;
+	/** Unit of `value`. Defaults to `'degree'`. Segment values are always in
+	 *  degrees; percent stops are converted to degrees for comparison. */
+	unit?: RampUnit;
 }
 
 /** A color ramp is an ordered array of stops. */
