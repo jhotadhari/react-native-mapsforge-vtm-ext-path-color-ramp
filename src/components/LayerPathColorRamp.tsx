@@ -22,6 +22,8 @@ import {
 	useNativeLayerLifecycle,
 } from 'react-native-mapsforge-vtm';
 
+const moduleDefaults = LayerPathColorRampModule.getConstants();
+
 /**
  * Reports a native error to the console and the optional onError callback.
  * Mirrors react-native-mapsforge-vtm's internal reportNativeError utility.
@@ -171,5 +173,7 @@ const LayerPathColorRamp = ({
 
 	return null;
 };
+
+LayerPathColorRamp.defaults = moduleDefaults;
 
 export default LayerPathColorRamp;

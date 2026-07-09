@@ -103,6 +103,102 @@ namespace JS {
 @interface RCTCxxConvert (NativeLayerPathColorRamp_RemoveLayerParams)
 + (RCTManagedPointer *)JS_NativeLayerPathColorRamp_RemoveLayerParams:(id)json;
 @end
+namespace JS {
+  namespace NativeLayerPathColorRamp {
+    struct ConstantsStyle {
+
+      struct Builder {
+        // Backwards compat for RCTTypedModuleConstants
+        using ResultT = ConstantsStyle;
+
+        struct Input {
+          std::optional<double> strokeWidth;
+          NSString *strokeColor;
+          NSString *cap;
+        };
+
+        /** Initialize with a set of values */
+        Builder(const Input i);
+        /** Initialize with an existing ConstantsStyle */
+        Builder(ConstantsStyle i);
+        /** Builds the object. Generally used only by the infrastructure. */
+        NSDictionary *buildUnsafeRawValue() const { return _factory(); };
+      private:
+        NSDictionary *(^_factory)(void);
+      };
+
+      static ConstantsStyle fromUnsafeRawValue(NSDictionary *const v) { return {v}; }
+      NSDictionary *unsafeRawValue() const { return _v; }
+    private:
+      ConstantsStyle(NSDictionary *const v) : _v(v) {}
+      NSDictionary *_v;
+    };
+  }
+}
+namespace JS {
+  namespace NativeLayerPathColorRamp {
+    struct ConstantsResponseInclude {
+
+      struct Builder {
+        // Backwards compat for RCTTypedModuleConstants
+        using ResultT = ConstantsResponseInclude;
+
+        struct Input {
+          std::optional<double> coordinates;
+          std::optional<double> bounds;
+        };
+
+        /** Initialize with a set of values */
+        Builder(const Input i);
+        /** Initialize with an existing ConstantsResponseInclude */
+        Builder(ConstantsResponseInclude i);
+        /** Builds the object. Generally used only by the infrastructure. */
+        NSDictionary *buildUnsafeRawValue() const { return _factory(); };
+      private:
+        NSDictionary *(^_factory)(void);
+      };
+
+      static ConstantsResponseInclude fromUnsafeRawValue(NSDictionary *const v) { return {v}; }
+      NSDictionary *unsafeRawValue() const { return _v; }
+    private:
+      ConstantsResponseInclude(NSDictionary *const v) : _v(v) {}
+      NSDictionary *_v;
+    };
+  }
+}
+namespace JS {
+  namespace NativeLayerPathColorRamp {
+    struct Constants {
+
+      struct Builder {
+        // Backwards compat for RCTTypedModuleConstants
+        using ResultT = Constants;
+
+        struct Input {
+          std::optional<JS::NativeLayerPathColorRamp::ConstantsStyle::Builder> style;
+          std::optional<JS::NativeLayerPathColorRamp::ConstantsResponseInclude::Builder> responseInclude;
+          std::optional<double> gestureScreenDistance;
+          std::optional<double> simplificationTolerance;
+        };
+
+        /** Initialize with a set of values */
+        Builder(const Input i);
+        /** Initialize with an existing Constants */
+        Builder(Constants i);
+        /** Builds the object. Generally used only by the infrastructure. */
+        NSDictionary *buildUnsafeRawValue() const { return _factory(); };
+      private:
+        NSDictionary *(^_factory)(void);
+      };
+
+      static Constants fromUnsafeRawValue(NSDictionary *const v) { return {v}; }
+      NSDictionary *unsafeRawValue() const { return _v; }
+    private:
+      Constants(NSDictionary *const v) : _v(v) {}
+      NSDictionary *_v;
+    };
+  }
+}
 @protocol NativeLayerPathColorRampSpec <RCTBridgeModule, RCTTurboModule>
 
 - (void)createLayer:(JS::NativeLayerPathColorRamp::CreateLayerParams &)params
@@ -113,6 +209,8 @@ namespace JS {
              reject:(RCTPromiseRejectBlock)reject;
 - (void)addListener:(NSString *)eventName;
 - (void)removeListeners:(double)count;
+- (facebook::react::ModuleConstants<JS::NativeLayerPathColorRamp::Constants>)constantsToExport;
+- (facebook::react::ModuleConstants<JS::NativeLayerPathColorRamp::Constants>)getConstants;
 
 @end
 
@@ -279,5 +377,44 @@ inline NSString *JS::NativeLayerPathColorRamp::RemoveLayerParams::uuid() const
   id const p = _v[@"uuid"];
   return RCTBridgingToString(p);
 }
+inline JS::NativeLayerPathColorRamp::ConstantsStyle::Builder::Builder(const Input i) : _factory(^{
+  NSMutableDictionary *d = [NSMutableDictionary new];
+  auto strokeWidth = i.strokeWidth;
+  d[@"strokeWidth"] = strokeWidth.has_value() ? @((double)strokeWidth.value()) : nil;
+  auto strokeColor = i.strokeColor;
+  d[@"strokeColor"] = strokeColor;
+  auto cap = i.cap;
+  d[@"cap"] = cap;
+  return d;
+}) {}
+inline JS::NativeLayerPathColorRamp::ConstantsStyle::Builder::Builder(ConstantsStyle i) : _factory(^{
+  return i.unsafeRawValue();
+}) {}
+inline JS::NativeLayerPathColorRamp::ConstantsResponseInclude::Builder::Builder(const Input i) : _factory(^{
+  NSMutableDictionary *d = [NSMutableDictionary new];
+  auto coordinates = i.coordinates;
+  d[@"coordinates"] = coordinates.has_value() ? @((double)coordinates.value()) : nil;
+  auto bounds = i.bounds;
+  d[@"bounds"] = bounds.has_value() ? @((double)bounds.value()) : nil;
+  return d;
+}) {}
+inline JS::NativeLayerPathColorRamp::ConstantsResponseInclude::Builder::Builder(ConstantsResponseInclude i) : _factory(^{
+  return i.unsafeRawValue();
+}) {}
+inline JS::NativeLayerPathColorRamp::Constants::Builder::Builder(const Input i) : _factory(^{
+  NSMutableDictionary *d = [NSMutableDictionary new];
+  auto style = i.style;
+  d[@"style"] = style.has_value() ? style.value().buildUnsafeRawValue() : nil;
+  auto responseInclude = i.responseInclude;
+  d[@"responseInclude"] = responseInclude.has_value() ? responseInclude.value().buildUnsafeRawValue() : nil;
+  auto gestureScreenDistance = i.gestureScreenDistance;
+  d[@"gestureScreenDistance"] = gestureScreenDistance.has_value() ? @((double)gestureScreenDistance.value()) : nil;
+  auto simplificationTolerance = i.simplificationTolerance;
+  d[@"simplificationTolerance"] = simplificationTolerance.has_value() ? @((double)simplificationTolerance.value()) : nil;
+  return d;
+}) {}
+inline JS::NativeLayerPathColorRamp::Constants::Builder::Builder(Constants i) : _factory(^{
+  return i.unsafeRawValue();
+}) {}
 NS_ASSUME_NONNULL_END
 #endif // RNMapsforgeVtmExtPathColorRampSpec_H

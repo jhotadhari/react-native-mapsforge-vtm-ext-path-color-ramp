@@ -47,6 +47,24 @@ export type GeometryStyle = {
 	transparent?: boolean;
 };
 
+/**
+ * Shape of the constants returned by the native module's {@code getConstants()}.
+ * Mirrors the values in LayerPathColorRamp.java getConstants(). Keep in sync.
+ */
+export interface ModuleParams {
+	style?: {
+		strokeWidth?: Double;
+		strokeColor?: string;
+		cap?: string;
+	};
+	responseInclude?: {
+		coordinates?: Int32;
+		bounds?: Int32;
+	};
+	gestureScreenDistance?: Double;
+	simplificationTolerance?: Double;
+}
+
 interface CreateLayerParams {
 	nativeNodeHandle?: Int32;
 	positionIndex?: Int32;
@@ -88,6 +106,7 @@ export type LayerPathColorRampProps = {
 };
 
 export interface Spec extends TurboModule {
+	getConstants(): ModuleParams;
 	createLayer(params: CreateLayerParams): Promise<LayerPathColorRampResponse>;
 	removeLayer(params: RemoveLayerParams): Promise<string>;
 	// Event emission (gesture events from native → JS).

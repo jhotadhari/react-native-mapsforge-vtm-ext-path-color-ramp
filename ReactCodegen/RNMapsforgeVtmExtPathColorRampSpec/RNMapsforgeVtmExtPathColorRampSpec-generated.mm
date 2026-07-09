@@ -59,6 +59,10 @@ namespace facebook::react {
       return static_cast<ObjCTurboModule&>(turboModule).invokeObjCMethod(rt, VoidKind, "removeListeners", @selector(removeListeners:), args, count);
     }
 
+    static facebook::jsi::Value __hostFunction_NativeLayerPathColorRampSpecJSI_getConstants(facebook::jsi::Runtime& rt, TurboModule &turboModule, const facebook::jsi::Value* args, size_t count) {
+      return static_cast<ObjCTurboModule&>(turboModule).invokeObjCMethod(rt, ObjectKind, "getConstants", @selector(getConstants), args, count);
+    }
+
   NativeLayerPathColorRampSpecJSI::NativeLayerPathColorRampSpecJSI(const ObjCTurboModule::InitParams &params)
     : ObjCTurboModule(params) {
       
@@ -72,6 +76,9 @@ namespace facebook::react {
         
         
         methodMap_["removeListeners"] = MethodMetadata {1, __hostFunction_NativeLayerPathColorRampSpecJSI_removeListeners};
+        
+        
+        methodMap_["getConstants"] = MethodMetadata {0, __hostFunction_NativeLayerPathColorRampSpecJSI_getConstants};
         
   }
 } // namespace facebook::react

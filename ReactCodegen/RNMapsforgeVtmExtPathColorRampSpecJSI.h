@@ -356,6 +356,73 @@ struct NativeLayerPathColorRampLayerPathColorRampResponseBridging {
 
 
 
+#pragma mark - NativeLayerPathColorRampModuleParams
+
+template <typename P0, typename P1, typename P2, typename P3>
+struct NativeLayerPathColorRampModuleParams {
+  P0 style{};
+  P1 responseInclude{};
+  P2 gestureScreenDistance{};
+  P3 simplificationTolerance;
+  bool operator==(const NativeLayerPathColorRampModuleParams &other) const {
+    return style == other.style && responseInclude == other.responseInclude && gestureScreenDistance == other.gestureScreenDistance && simplificationTolerance == other.simplificationTolerance;
+  }
+};
+
+template <typename T>
+struct NativeLayerPathColorRampModuleParamsBridging {
+  static T types;
+
+  static T fromJs(
+      jsi::Runtime &rt,
+      const jsi::Object &value,
+      const std::shared_ptr<CallInvoker> &jsInvoker) {
+    T result{
+      bridging::fromJs<decltype(types.style)>(rt, value.getProperty(rt, "style"), jsInvoker),
+      bridging::fromJs<decltype(types.responseInclude)>(rt, value.getProperty(rt, "responseInclude"), jsInvoker),
+      bridging::fromJs<decltype(types.gestureScreenDistance)>(rt, value.getProperty(rt, "gestureScreenDistance"), jsInvoker),
+      bridging::fromJs<decltype(types.simplificationTolerance)>(rt, value.getProperty(rt, "simplificationTolerance"), jsInvoker)};
+    return result;
+  }
+
+#ifdef DEBUG
+  static jsi::Object styleToJs(jsi::Runtime &rt, decltype(types.style) value) {
+    return bridging::toJs(rt, value);
+  }
+  static jsi::Object responseIncludeToJs(jsi::Runtime &rt, decltype(types.responseInclude) value) {
+    return bridging::toJs(rt, value);
+  }
+  static double gestureScreenDistanceToJs(jsi::Runtime &rt, decltype(types.gestureScreenDistance) value) {
+    return bridging::toJs(rt, value);
+  }
+  static double simplificationToleranceToJs(jsi::Runtime &rt, decltype(types.simplificationTolerance) value) {
+    return bridging::toJs(rt, value);
+  }
+#endif
+
+  static jsi::Object toJs(
+      jsi::Runtime &rt,
+      const T &value,
+      const std::shared_ptr<CallInvoker> &jsInvoker) {
+    auto result = facebook::jsi::Object(rt);
+    if (value.style) {
+      result.setProperty(rt, "style", bridging::toJs(rt, value.style.value(), jsInvoker));
+    }
+    if (value.responseInclude) {
+      result.setProperty(rt, "responseInclude", bridging::toJs(rt, value.responseInclude.value(), jsInvoker));
+    }
+    if (value.gestureScreenDistance) {
+      result.setProperty(rt, "gestureScreenDistance", bridging::toJs(rt, value.gestureScreenDistance.value(), jsInvoker));
+    }
+    if (value.simplificationTolerance) {
+      result.setProperty(rt, "simplificationTolerance", bridging::toJs(rt, value.simplificationTolerance.value(), jsInvoker));
+    }
+    return result;
+  }
+};
+
+
+
 #pragma mark - NativeLayerPathColorRampRemoveLayerParams
 
 template <typename P0, typename P1>
@@ -456,6 +523,7 @@ public:
 
 protected:
   NativeLayerPathColorRampCxxSpec(std::shared_ptr<CallInvoker> jsInvoker) : TurboModule(std::string{NativeLayerPathColorRampCxxSpec::kModuleName}, jsInvoker) {
+    methodMap_["getConstants"] = MethodMetadata {.argCount = 0, .invoker = __getConstants};
     methodMap_["createLayer"] = MethodMetadata {.argCount = 1, .invoker = __createLayer};
     methodMap_["removeLayer"] = MethodMetadata {.argCount = 1, .invoker = __removeLayer};
     methodMap_["addListener"] = MethodMetadata {.argCount = 1, .invoker = __addListener};
@@ -463,6 +531,13 @@ protected:
   }
   
 private:
+  static jsi::Value __getConstants(jsi::Runtime &rt, TurboModule &turboModule, const jsi::Value* /*args*/, size_t /*count*/) {
+    static_assert(
+      bridging::getParameterCount(&T::getConstants) == 1,
+      "Expected getConstants(...) to have 1 parameters");
+    return bridging::callFromJs<jsi::Object>(rt, &T::getConstants,  static_cast<NativeLayerPathColorRampCxxSpec*>(&turboModule)->jsInvoker_, static_cast<T*>(&turboModule));
+  }
+
   static jsi::Value __createLayer(jsi::Runtime &rt, TurboModule &turboModule, const jsi::Value* args, size_t count) {
     static_assert(
       bridging::getParameterCount(&T::createLayer) == 2,
