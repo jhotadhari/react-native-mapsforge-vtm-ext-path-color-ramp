@@ -371,6 +371,15 @@ public class ColorRampPathLayerManager extends PathLayerManager {
      * linearly interpolates across short blend zones while the middle of
      * the segment stays at its true colour.
      *
+     * <p><b>Value ordering:</b> {@link LineDrawable} stores coordinates as
+     * {@code {end, start}} (reversed).  After JTS transformation the geometry
+     * buffer has the end point first and start point last.  In
+     * {@code addLineWithValues}, {@code values[0]} is used at the first
+     * (end) point and {@code values[last]} at the last (start) point.
+     * The effective gradient along the path (start → end) is therefore
+     * {@code values[last] → values[0]}.  We pass values in reverse order
+     * so the path-travel direction matches the user's intent.
+     *
      * <pre>
      *   c0  ──[entry: startVal→segVal]──▶ mid1
      *       ──[pure:   segVal→segVal  ]──▶ mid2
@@ -398,11 +407,12 @@ public class ColorRampPathLayerManager extends PathLayerManager {
 
         if (blendRatio < 0.01f) {
             // No blending — single drawable with vertex-averaged boundaries.
+            // Values reversed: effective gradient (start→end) = endVal→startVal.
             double[] seg = new double[]{c1.x, c1.y, c0.x, c0.y};
             LineDrawable d = new LineDrawable(seg, style);
             d.setPriority(entry.positionIndex);
             crLayer.addLineDrawableWithValues(d,
-                    new float[]{startVal, endVal});
+                    new float[]{endVal, startVal});
             entry.drawables.add(d);
             return;
         }
@@ -413,15 +423,17 @@ public class ColorRampPathLayerManager extends PathLayerManager {
         double mx2 = c0.x + (c1.x - c0.x) * (1.0 - t);
         double my2 = c0.y + (c1.y - c0.y) * (1.0 - t);
 
-        // Entry blend zone: c0 → mid1, values: startVal → segVal
+        // Entry blend zone: c0 → mid1.
+        // Effective gradient (start→end): startVal → segVal.
         double[] entrySeg = new double[]{mx1, my1, c0.x, c0.y};
         LineDrawable entryD = new LineDrawable(entrySeg, style);
         entryD.setPriority(entry.positionIndex);
         crLayer.addLineDrawableWithValues(entryD,
-                new float[]{startVal, segVal});
+                new float[]{segVal, startVal});
         entry.drawables.add(entryD);
 
-        // Pure zone: mid1 → mid2, values: segVal → segVal
+        // Pure zone: mid1 → mid2.
+        // Effective gradient (start→end): segVal → segVal.
         double[] pureSeg = new double[]{mx2, my2, mx1, my1};
         LineDrawable pureD = new LineDrawable(pureSeg, style);
         pureD.setPriority(entry.positionIndex);
@@ -429,12 +441,13 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                 new float[]{segVal, segVal});
         entry.drawables.add(pureD);
 
-        // Exit blend zone: mid2 → c1, values: segVal → endVal
+        // Exit blend zone: mid2 → c1.
+        // Effective gradient (start→end): segVal → endVal.
         double[] exitSeg = new double[]{c1.x, c1.y, mx2, my2};
         LineDrawable exitD = new LineDrawable(exitSeg, style);
         exitD.setPriority(entry.positionIndex);
         crLayer.addLineDrawableWithValues(exitD,
-                new float[]{segVal, endVal});
+                new float[]{endVal, segVal});
         entry.drawables.add(exitD);
     }
 

@@ -73,6 +73,7 @@ namespace JS {
       NSString *fragmentUuid() const;
       std::optional<facebook::react::LazyVector<double>> segmentValues() const;
       std::optional<facebook::react::LazyVector<NSString *>> colorRampStops() const;
+      std::optional<double> blendRatio() const;
       std::optional<bool> supportsGestures() const;
       std::optional<JS::NativeLayerPathColorRamp::GeometryStyle> style() const;
 
@@ -252,6 +253,11 @@ inline std::optional<facebook::react::LazyVector<NSString *>> JS::NativeLayerPat
 {
   id const p = _v[@"colorRampStops"];
   return RCTBridgingToOptionalVec(p, ^NSString *(id itemValue_0) { return RCTBridgingToString(itemValue_0); });
+}
+inline std::optional<double> JS::NativeLayerPathColorRamp::CreateLayerParams::blendRatio() const
+{
+  id const p = _v[@"blendRatio"];
+  return RCTBridgingToOptionalDouble(p);
 }
 inline std::optional<bool> JS::NativeLayerPathColorRamp::CreateLayerParams::supportsGestures() const
 {
