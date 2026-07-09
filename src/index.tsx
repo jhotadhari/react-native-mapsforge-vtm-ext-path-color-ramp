@@ -11,6 +11,10 @@
 // Public API surface — will be populated as components/hooks are implemented.
 export { default as LayerPathColorRamp } from './components/LayerPathColorRamp';
 export { usePathColorRamp } from './hooks/usePathColorRamp';
+export type {
+	UsePathColorRampOptions,
+	UsePathColorRampResult,
+} from './hooks/usePathColorRamp';
 export { default as COLOR_RAMPS } from './colors/colorRamps';
 export { interpolateColor } from './colors/colorInterpolation';
 export { calculateSlope, type SlopeOptions } from './metrics/slope';
