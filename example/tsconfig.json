@@ -9,5 +9,5 @@
       "react-native-mapsforge-vtm-ext-path-color-ramp": ["../src/index"]
     }
   },
-  "include": ["src", "../src"]
+  "include": ["src"]
 }
