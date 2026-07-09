@@ -70,9 +70,14 @@ interface CreateLayerParams {
 	positionIndex?: Int32;
 	coordinates?: ReadonlyArray<Position>;
 	fragmentUuid?: string;
+	/** Per-segment values (length = coords.length - 1). Rendered with blend zones. */
 	segmentValues?: ReadonlyArray<Double>;
+	/** Per-vertex values (length = coords.length). Rendered as full-segment gradients
+	 *  without blend zones. Takes precedence over segmentValues when both present. */
+	vertexValues?: ReadonlyArray<Double>;
 	colorRampStops?: ReadonlyArray<string>;
-	/** Fraction of each segment used for color blending at borders (0–0.45, default 0.15). */
+	/** Fraction of each segment used for color blending at borders (0-0.45, default 0.15).
+	 *  Only applies to segmentValues mode; ignored in vertexValues mode. */
 	blendRatio?: Double;
 	supportsGestures?: boolean;
 	style?: GeometryStyle;
@@ -94,9 +99,14 @@ export interface LayerPathColorRampResponse extends ResponseBase {
 
 export type LayerPathColorRampProps = {
 	coordinates?: GeoJsonPosition[];
+	/** Per-segment values (length = coords.length - 1). Rendered with blend zones. */
 	segmentValues?: number[];
+	/** Per-vertex values (length = coords.length). Rendered as full-segment gradients
+	 *  without blend zones. Takes precedence over segmentValues when both present. */
+	vertexValues?: number[];
 	colorRampStops?: string[];
-	/** Fraction of each segment used for color blending at borders (0–0.45, default 0.15). */
+	/** Fraction of each segment used for color blending at borders (0-0.45, default 0.15).
+	 *  Only applies to segmentValues mode; ignored in vertexValues mode. */
 	blendRatio?: number;
 	style?: GeometryStyle;
 	onCreate?: null | ((response: LayerPathColorRampResponse) => void);

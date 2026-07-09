@@ -143,6 +143,18 @@ public class ColorRampPathLayerManager extends PathLayerManager {
             }
         }
 
+        // ── Parse vertex values (per-vertex mode, no blend zones) ──
+        float[] vertexValues = null;
+        if (Utils.rMapHasKey(params, "vertexValues")) {
+            ReadableArray vvArray = params.getArray("vertexValues");
+            if (vvArray != null && vvArray.size() > 0) {
+                vertexValues = new float[vvArray.size()];
+                for (int i = 0; i < vvArray.size(); i++) {
+                    vertexValues[i] = (float) vvArray.getDouble(i);
+                }
+            }
+        }
+
         // ── Parse color ramp stops ──
         String[] colorRampStops = null;
         if (Utils.rMapHasKey(params, "colorRampStops")) {
@@ -160,8 +172,9 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                 entryUuid, params, mapFragment, contentResolver, reactContext);
 
         // ── Post-process: if we have per-segment values, re-register
-        //     drawables with values in the ColorRampVectorLayer ─────────
-        if (segmentValues != null && segmentValues.length > 0) {
+        //     re-register drawables with values ────────────────────────
+        if ((segmentValues != null && segmentValues.length > 0)
+                || (vertexValues != null && vertexValues.length > 0)) {
             PathEntry entry = result.entry;
             ColorRampVectorLayer crLayer = (ColorRampVectorLayer)
                     getSharedLayer(entry.fragmentUuid);
@@ -181,7 +194,8 @@ public class ColorRampPathLayerManager extends PathLayerManager {
 
                 Coordinate[] coords = entry.jtsCoordinates;
                 int expectedSegments = coords.length - 1;
-                if (segmentValues.length != expectedSegments) {
+                if (segmentValues != null
+                        && segmentValues.length != expectedSegments) {
                     log.warning("segmentValues length ("
                             + segmentValues.length
                             + ") does not match segment count ("
@@ -189,11 +203,8 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                             + ") for entry " + entryUuid
                             + "; values will be mismatched");
                 }
-                // Read blend ratio (fraction of each segment used for
-                // colour blending at borders). 0 = hard segment edges;
-                // 0.15 = 15% blend at each end, 70% pure middle.
                 rebuildDrawablesWithValues(crLayer, entry, coords,
-                        segmentValues, params, style);
+                        segmentValues, vertexValues, params, style);
             }
         }
 
@@ -232,6 +243,18 @@ public class ColorRampPathLayerManager extends PathLayerManager {
             }
         }
 
+        // ── Parse vertex values (per-vertex mode, no blend zones) ──
+        float[] vertexValues = null;
+        if (Utils.rMapHasKey(params, "vertexValues")) {
+            ReadableArray vvArray = params.getArray("vertexValues");
+            if (vvArray != null && vvArray.size() > 0) {
+                vertexValues = new float[vvArray.size()];
+                for (int i = 0; i < vvArray.size(); i++) {
+                    vertexValues[i] = (float) vvArray.getDouble(i);
+                }
+            }
+        }
+
         String[] colorRampStops = null;
         if (Utils.rMapHasKey(params, "colorRampStops")) {
             ReadableArray crArray = params.getArray("colorRampStops");
@@ -249,8 +272,9 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                 mapFragment, contentResolver);
 
         // ── Post-process: replace parent's plain drawables with
-        //     color-ramp-valued ones if segment values are present ──
-        if (segmentValues != null && segmentValues.length > 0) {
+        //     colour-ramp-valued ones if segment or vertex values present ──
+        if ((segmentValues != null && segmentValues.length > 0)
+                || (vertexValues != null && vertexValues.length > 0)) {
             ColorRampVectorLayer crLayer = (ColorRampVectorLayer)
                     getSharedLayer(entry.fragmentUuid);
             if (crLayer != null && !entry.drawables.isEmpty()) {
@@ -268,7 +292,8 @@ public class ColorRampPathLayerManager extends PathLayerManager {
 
                 Coordinate[] coords = entry.jtsCoordinates;
                 int expectedSegments = coords.length - 1;
-                if (segmentValues.length != expectedSegments) {
+                if (segmentValues != null
+                        && segmentValues.length != expectedSegments) {
                     log.warning("segmentValues length ("
                             + segmentValues.length
                             + ") does not match segment count ("
@@ -277,7 +302,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                             + " in updateEntry; values will be mismatched");
                 }
                 rebuildDrawablesWithValues(crLayer, entry, coords,
-                        segmentValues, params, style);
+                        segmentValues, vertexValues, params, style);
             }
         }
 
@@ -309,7 +334,8 @@ public class ColorRampPathLayerManager extends PathLayerManager {
             @NonNull ColorRampVectorLayer crLayer,
             @NonNull PathEntry entry,
             @NonNull Coordinate[] coords,
-            @NonNull float[] segmentValues,
+            @Nullable float[] segmentValues,
+            @Nullable float[] vertexValues,
             @NonNull ReadableMap params,
             @NonNull Style style) {
 
@@ -317,6 +343,21 @@ public class ColorRampPathLayerManager extends PathLayerManager {
         if (Utils.rMapHasKey(params, "blendRatio")) {
             blendRatio = (float) params.getDouble("blendRatio");
             blendRatio = Math.max(0.0f, Math.min(0.45f, blendRatio));
+        }
+
+        // Vertex mode: per-vertex values, full-segment gradients,
+        // no blend zones.
+        if (vertexValues != null && vertexValues.length > 0) {
+            if (vertexValues.length != coords.length) {
+                log.warning("vertexValues length (" + vertexValues.length
+                        + ") does not match vertex count (" + coords.length
+                        + "); skipping");
+            } else {
+                addVertexGradientDrawables(crLayer, entry, coords,
+                        vertexValues, style);
+                crLayer.update();
+                return;
+            }
         }
 
         // Compute per-vertex values.
@@ -442,6 +483,57 @@ public class ColorRampPathLayerManager extends PathLayerManager {
         crLayer.addLineDrawableWithValues(exitD,
                 new float[]{endVal, segVal});
         entry.drawables.add(exitD);
+    }
+
+    // ── Vertex-mode drawable creation (no blend zones) ─────────────────────
+
+    /**
+     * Creates one {@link LineDrawable} per segment with a full gradient from
+     * the start vertex value to the end vertex value.  No blend zones are
+     * needed because each interior vertex is shared by adjacent segments,
+     * so the colour transitions are naturally seamless.
+     *
+     * <p>Use this for per-vertex data (elevation, speed, temperature)
+     * where the value belongs to a specific point, not a stretch of path.
+     *
+     * <p><b>Value ordering:</b> Same reversal as
+     * {@link #addSegmentDrawables} — coordinates are stored
+     * {@code {end, start}} and values are passed in reverse so the
+     * effective gradient follows the path direction (start → end).
+     *
+     * @param crLayer      target colour-ramp layer
+     * @param entry        path entry (for priority)
+     * @param coords       all coordinates of the path
+     * @param vertexValues per-vertex values (length = coords.length)
+     * @param style        line style
+     */
+    private void addVertexGradientDrawables(
+            @NonNull ColorRampVectorLayer crLayer,
+            @NonNull PathEntry entry,
+            @NonNull Coordinate[] coords,
+            @NonNull float[] vertexValues,
+            @NonNull Style style) {
+
+        int basePrio = entry.positionIndex * 2;
+
+        for (int i = 1; i < coords.length; i++) {
+            float vStart = (i - 1) < vertexValues.length
+                    ? vertexValues[i - 1] : 0.5f;
+            float vEnd = i < vertexValues.length
+                    ? vertexValues[i] : 0.5f;
+
+            // Coordinates reversed: {end, start}.
+            // Values reversed: {endVal, startVal} so effective
+            // gradient (start→end) = vStart → vEnd.
+            double[] seg = new double[]{
+                    coords[i].x, coords[i].y,
+                    coords[i - 1].x, coords[i - 1].y};
+            LineDrawable d = new LineDrawable(seg, style);
+            d.setPriority(basePrio);
+            crLayer.addLineDrawableWithValues(d,
+                    new float[]{vEnd, vStart});
+            entry.drawables.add(d);
+        }
     }
 
     // ── Gesture listener factory ───────────────────────────────────────────

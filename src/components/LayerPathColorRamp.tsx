@@ -43,6 +43,17 @@ const reportNativeError = (
  * Maps data values (slope, elevation, speed, etc.) to colors using a GPU
  * texture lookup. Place inside a {@code <MapContainer>}.
  *
+ * <p>Two rendering modes are supported:
+ * <ul>
+ *   <li><b>Segment mode</b> (default): pass {@code segmentValues}
+ *       (length = coordinates.length - 1).  The native renderer splits each
+ *       segment into blend / pure / blend zones for smooth transitions
+ *       between segments with different values.</li>
+ *   <li><b>Vertex mode</b>: pass {@code vertexValues}
+ *       (length = coordinates.length).  Each segment renders as a full
+ *       gradient from one vertex value to the next without blend zones.</li>
+ * </ul>
+ *
  * @remarks
  * - Android only.
  * - Requires react-native-mapsforge-vtm >= 0.7.0 (Phase 1 extensibility hooks).
@@ -51,28 +62,27 @@ const reportNativeError = (
  *
  * @example
  * ```tsx
- * import { usePathColorRamp, calculateSlope } from
- *   'react-native-mapsforge-vtm-ext-path-color-ramp';
+ * // Segment mode (slope)
+ * <LayerPathColorRamp
+ *   coordinates={coords}
+ *   segmentValues={normalizedSlopeValues}
+ *   colorRampStops={stops}
+ *   style={{ strokeWidth: 4 }}
+ * />
  *
- * function MyPath({ coordinates }) {
- *   const { segmentValues, colorRampStops } = usePathColorRamp({
- *     coordinates,
- *     segmentValues: calculateSlope(coordinates),
- *   });
- *   return (
- *     <LayerPathColorRamp
- *       coordinates={coordinates}
- *       segmentValues={segmentValues}
- *       colorRampStops={colorRampStops}
- *       style={{ strokeWidth: 4 }}
- *     />
- *   );
- * }
+ * // Vertex mode (elevation)
+ * <LayerPathColorRamp
+ *   coordinates={coords}
+ *   vertexValues={normalizedElevationValues}
+ *   colorRampStops={stops}
+ *   style={{ strokeWidth: 4 }}
+ * />
  * ```
  */
 const LayerPathColorRamp = ({
 	coordinates,
 	segmentValues,
+	vertexValues,
 	colorRampStops,
 	blendRatio,
 	style,
@@ -111,6 +121,7 @@ const LayerPathColorRamp = ({
 				}),
 				coordinates,
 				...(segmentValues && { segmentValues }),
+				...(vertexValues && { vertexValues }),
 				...(colorRampStops && { colorRampStops }),
 				...(blendRatio !== undefined && { blendRatio }),
 				...(style && { style }),
@@ -151,7 +162,8 @@ const LayerPathColorRamp = ({
 
 	// Recreate when construction-baked props change. The native module does not
 	// yet have an in-place update path; remove+create is the only mechanism for
-	// reflecting new coordinates, segmentValues, colorRampStops, or style.
+	// reflecting new coordinates, segmentValues, vertexValues, colorRampStops,
+	// or style.
 	useEffect(() => {
 		triggerRemove({ triggerOnRemove: false }).then((success) => {
 			if (success) {
@@ -164,6 +176,7 @@ const LayerPathColorRamp = ({
 	}, [
 		coordinates,
 		segmentValues,
+		vertexValues,
 		colorRampStops,
 		blendRatio,
 		style,

@@ -72,6 +72,7 @@ namespace JS {
       std::optional<facebook::react::LazyVector<facebook::react::LazyVector<double>>> coordinates() const;
       NSString *fragmentUuid() const;
       std::optional<facebook::react::LazyVector<double>> segmentValues() const;
+      std::optional<facebook::react::LazyVector<double>> vertexValues() const;
       std::optional<facebook::react::LazyVector<NSString *>> colorRampStops() const;
       std::optional<double> blendRatio() const;
       std::optional<bool> supportsGestures() const;
@@ -345,6 +346,11 @@ inline NSString *JS::NativeLayerPathColorRamp::CreateLayerParams::fragmentUuid()
 inline std::optional<facebook::react::LazyVector<double>> JS::NativeLayerPathColorRamp::CreateLayerParams::segmentValues() const
 {
   id const p = _v[@"segmentValues"];
+  return RCTBridgingToOptionalVec(p, ^double(id itemValue_0) { return RCTBridgingToDouble(itemValue_0); });
+}
+inline std::optional<facebook::react::LazyVector<double>> JS::NativeLayerPathColorRamp::CreateLayerParams::vertexValues() const
+{
+  id const p = _v[@"vertexValues"];
   return RCTBridgingToOptionalVec(p, ^double(id itemValue_0) { return RCTBridgingToDouble(itemValue_0); });
 }
 inline std::optional<facebook::react::LazyVector<NSString *>> JS::NativeLayerPathColorRamp::CreateLayerParams::colorRampStops() const
