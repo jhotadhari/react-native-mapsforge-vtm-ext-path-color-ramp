@@ -27,7 +27,7 @@ import { coordinates } from "./data";
  */
 
 /** Maps a 0-1 normalised colour ramp to span the actual data range.
- *  Output stops carry {@code unit: 'absolute'} since the values are now
+ *  Output carries {@code unit: 'absolute'} since the values are now
  *  in the data's real-world units (metres, km/h, etc.). */
 function createDataRangeRamp(
   values: number[],
@@ -38,17 +38,18 @@ function createDataRangeRamp(
   const max = Math.max(...values);
   const range = max - min;
   if (range === 0) {
-    return baseRamp.map((stop) => ({
-      ...stop,
-      value: min,
-      unit: "absolute" as const,
-    }));
+    return {
+      unit: 'absolute',
+      stops: baseRamp.stops.map((stop) => ({ ...stop, value: min })),
+    };
   }
-  return baseRamp.map((stop) => ({
-    ...stop,
-    value: min + stop.value * range,
-    unit: "absolute" as const,
-  }));
+  return {
+    unit: 'absolute',
+    stops: baseRamp.stops.map((stop) => ({
+      ...stop,
+      value: min + stop.value * range,
+    })),
+  };
 }
 
 type MetricKey = "slope" | "elevation";

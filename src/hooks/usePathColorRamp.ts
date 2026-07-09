@@ -8,18 +8,17 @@ function percentToDeg(pct: number): number {
 	return (Math.atan(pct / 100) * 180) / Math.PI;
 }
 
-/** Convert percent-grade stops to degrees so all stops share a consistent
- *  domain.  Normalised and degree (absolute) stops pass through unchanged. */
-function stopsToDegrees(stops: ColorRamp): ColorRamp {
-	return stops.map((s) =>
-		s.unit === 'percent'
-			? {
-					value: percentToDeg(s.value),
-					color: s.color,
-					unit: 'degree' as const,
-				}
-			: s
-	);
+/** If the ramp uses percent-grade stops, convert them to degrees so the
+ *  domain is consistent.  All other units pass through unchanged. */
+function stopsToDegrees(ramp: ColorRamp): ColorRamp {
+	if (ramp.unit !== 'percent') return ramp;
+	return {
+		unit: 'degree',
+		stops: ramp.stops.map((s) => ({
+			value: percentToDeg(s.value),
+			color: s.color,
+		})),
+	};
 }
 
 export interface UsePathColorRampOptions {
@@ -117,15 +116,16 @@ export function usePathColorRamp(
 	}, [vertexValues, numVertices]);
 
 	// ── Resolve the colour ramp ───────────────────────────────────────────
-	const stops = useMemo(() => {
-		const ramp = colorRamp ?? (COLOR_RAMPS.slope! as ColorRamp);
-		const chosen =
-			ramp.length >= 2 ? ramp : (COLOR_RAMPS.slope! as ColorRamp);
+	const resolved = useMemo(() => {
+		const ramp: ColorRamp = colorRamp ?? COLOR_RAMPS.slope!;
+		const chosen: ColorRamp =
+			ramp.stops.length >= 2 ? ramp : COLOR_RAMPS.slope!;
 		return stopsToDegrees(chosen);
 	}, [colorRamp]);
 
 	// ── Normalize values against the ramp domain ──────────────────────────
 	const normalizedValues = useMemo(() => {
+		const stops = resolved.stops;
 		const rampMin = stops[0]!.value;
 		const rampMax = stops[stops.length - 1]!.value;
 		const rampRange = rampMax - rampMin;
@@ -158,20 +158,22 @@ export function usePathColorRamp(
 		segmentValues,
 		numSegments,
 		numVertices,
-		stops,
+		resolved,
 	]);
 
 	// ── Per-element colours ───────────────────────────────────────────────
 	const segmentColors = useMemo(() => {
+		const stops = resolved.stops;
 		const rampMin = stops[0]!.value;
 		const rampMax = stops[stops.length - 1]!.value;
 		return normalizedValues.map((v) =>
 			colorFromRamp(rampMin + v * (rampMax - rampMin), stops)
 		);
-	}, [normalizedValues, stops]);
+	}, [normalizedValues, resolved]);
 
 	// ── Colour ramp texture stops (for the GPU) ──────────────────────────
 	const colorRampStops = useMemo(() => {
+		const stops = resolved.stops;
 		const rampMin = stops[0]!.value;
 		const rampMax = stops[stops.length - 1]!.value;
 		const n = safeNumStops;
@@ -179,7 +181,7 @@ export function usePathColorRamp(
 			const t = i / (n - 1);
 			return colorFromRamp(rampMin + t * (rampMax - rampMin), stops);
 		});
-	}, [stops, safeNumStops]);
+	}, [resolved, safeNumStops]);
 
 	return { segmentColors, normalizedValues, colorRampStops, valueMode };
 }
