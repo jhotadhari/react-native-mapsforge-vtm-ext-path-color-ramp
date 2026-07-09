@@ -23,8 +23,6 @@ import org.oscim.layers.Layer;
 import org.oscim.layers.vector.geometries.LineDrawable;
 import org.oscim.layers.vector.geometries.Style;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -69,11 +67,6 @@ public class ColorRampPathLayerManager extends PathLayerManager {
         return (ColorRampPathLayerManager) LayerManager.getInstance(
                 nativeNodeHandle, MGR_NAME);
     }
-
-    // ── Per-entry segment values ───────────────────────────────────────────
-
-    /** Maps entry uuid → per-segment normalized values (0–1). */
-    private final Map<String, float[]> entrySegmentValues = new ConcurrentHashMap<>();
 
     // ── Constructor ────────────────────────────────────────────────────────
 
@@ -199,48 +192,9 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                 // Read blend ratio (fraction of each segment used for
                 // colour blending at borders). 0 = hard segment edges;
                 // 0.15 = 15% blend at each end, 70% pure middle.
-                float blendRatio = 0.15f;
-                if (Utils.rMapHasKey(params, "blendRatio")) {
-                    blendRatio = (float) params.getDouble("blendRatio");
-                    blendRatio = Math.max(0.0f, Math.min(0.45f, blendRatio));
-                }
-
-                // Pre-compute per-vertex values. Each vertex connecting
-                // two segments blends those segments' values.  With
-                // sub-segment subdivision, boundary values are the
-                // average of adjacent segment values so neighbouring
-                // blend zones meet at the same colour.
-                float[] vertexVals = new float[coords.length];
-                for (int i = 0; i < coords.length; i++) {
-                    if (i == 0) {
-                        vertexVals[i] = segmentValues.length > 0
-                                ? segmentValues[0] : 0.5f;
-                    } else if (i == coords.length - 1) {
-                        vertexVals[i] = segmentValues.length > 0
-                                ? segmentValues[segmentValues.length - 1] : 0.5f;
-                    } else {
-                        float a = (i - 1) < segmentValues.length
-                                ? segmentValues[i - 1] : 0.5f;
-                        float b = i < segmentValues.length
-                                ? segmentValues[i] : 0.5f;
-                        vertexVals[i] = (a + b) / 2.0f;
-                    }
-                }
-                for (int i = 1; i < coords.length; i++) {
-                    int segIdx = i - 1;
-                    float segVal = segIdx < segmentValues.length
-                            ? segmentValues[segIdx] : 0.5f;
-                    float startVal = vertexVals[i - 1];
-                    float endVal = vertexVals[i];
-                    addSegmentDrawables(crLayer, entry, style,
-                            coords[i - 1], coords[i],
-                            startVal, segVal, endVal, blendRatio);
-                }
-
-                entrySegmentValues.put(entryUuid, segmentValues);
-                crLayer.update();
+                rebuildDrawablesWithValues(crLayer, entry, coords,
+                        segmentValues, params, style);
             }
-        } else {
         }
 
         // ── Upload color-ramp texture if stops provided ──
@@ -297,8 +251,6 @@ public class ColorRampPathLayerManager extends PathLayerManager {
         // ── Post-process: replace parent's plain drawables with
         //     color-ramp-valued ones if segment values are present ──
         if (segmentValues != null && segmentValues.length > 0) {
-            entrySegmentValues.put(entry.pathUuid, segmentValues);
-
             ColorRampVectorLayer crLayer = (ColorRampVectorLayer)
                     getSharedLayer(entry.fragmentUuid);
             if (crLayer != null && !entry.drawables.isEmpty()) {
@@ -324,41 +276,8 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                             + ") for entry " + entry.pathUuid
                             + " in updateEntry; values will be mismatched");
                 }
-                // Per-vertex averaging — mirrors createEntry() so updates
-                // produce the same smooth gradients as initial creation.
-                float blendRatio = 0.15f;
-                if (Utils.rMapHasKey(params, "blendRatio")) {
-                    blendRatio = (float) params.getDouble("blendRatio");
-                    blendRatio = Math.max(0.0f, Math.min(0.45f, blendRatio));
-                }
-
-                float[] vertexVals = new float[coords.length];
-                for (int i = 0; i < coords.length; i++) {
-                    if (i == 0) {
-                        vertexVals[i] = segmentValues.length > 0
-                                ? segmentValues[0] : 0.5f;
-                    } else if (i == coords.length - 1) {
-                        vertexVals[i] = segmentValues.length > 0
-                                ? segmentValues[segmentValues.length - 1] : 0.5f;
-                    } else {
-                        float a = (i - 1) < segmentValues.length
-                                ? segmentValues[i - 1] : 0.5f;
-                        float b = i < segmentValues.length
-                                ? segmentValues[i] : 0.5f;
-                        vertexVals[i] = (a + b) / 2.0f;
-                    }
-                }
-                for (int i = 1; i < coords.length; i++) {
-                    int segIdx = i - 1;
-                    float segVal = segIdx < segmentValues.length
-                            ? segmentValues[segIdx] : 0.5f;
-                    float startVal = vertexVals[i - 1];
-                    float endVal = vertexVals[i];
-                    addSegmentDrawables(crLayer, entry, style,
-                            coords[i - 1], coords[i],
-                            startVal, segVal, endVal, blendRatio);
-                }
-                crLayer.update();
+                rebuildDrawablesWithValues(crLayer, entry, coords,
+                        segmentValues, params, style);
             }
         }
 
@@ -376,16 +295,60 @@ public class ColorRampPathLayerManager extends PathLayerManager {
 
     @Override
     public void remove(@NonNull String entryUuid) {
-        entrySegmentValues.remove(entryUuid);
         super.remove(entryUuid);
     }
 
+    // ── Shared drawable-rebuild helper ────────────────────────────────────
+
     /**
-     * Returns the per-segment values for an entry, or null if none are stored.
+     * Rebuilds colour-ramp drawables for an entry, replacing any plain
+     * parent-created drawables with value-bearing sub-segment drawables.
+     * Shared by {@link #createEntry} and {@link #updateEntry}.
      */
-    @Nullable
-    public float[] getSegmentValues(@NonNull String entryUuid) {
-        return entrySegmentValues.get(entryUuid);
+    private void rebuildDrawablesWithValues(
+            @NonNull ColorRampVectorLayer crLayer,
+            @NonNull PathEntry entry,
+            @NonNull Coordinate[] coords,
+            @NonNull float[] segmentValues,
+            @NonNull ReadableMap params,
+            @NonNull Style style) {
+
+        float blendRatio = 0.15f;
+        if (Utils.rMapHasKey(params, "blendRatio")) {
+            blendRatio = (float) params.getDouble("blendRatio");
+            blendRatio = Math.max(0.0f, Math.min(0.45f, blendRatio));
+        }
+
+        // Compute per-vertex values.
+        float[] vertexVals = new float[coords.length];
+        for (int i = 0; i < coords.length; i++) {
+            if (i == 0) {
+                vertexVals[i] = segmentValues.length > 0
+                        ? segmentValues[0] : 0.5f;
+            } else if (i == coords.length - 1) {
+                vertexVals[i] = segmentValues.length > 0
+                        ? segmentValues[segmentValues.length - 1] : 0.5f;
+            } else {
+                float a = (i - 1) < segmentValues.length
+                        ? segmentValues[i - 1] : 0.5f;
+                float b = i < segmentValues.length
+                        ? segmentValues[i] : 0.5f;
+                vertexVals[i] = (a + b) / 2.0f;
+            }
+        }
+
+        for (int i = 1; i < coords.length; i++) {
+            int segIdx = i - 1;
+            float segVal = segIdx < segmentValues.length
+                    ? segmentValues[segIdx] : 0.5f;
+            float startVal = vertexVals[i - 1];
+            float endVal = vertexVals[i];
+            addSegmentDrawables(crLayer, entry, style,
+                    coords[i - 1], coords[i],
+                    startVal, segVal, endVal, blendRatio);
+        }
+
+        crLayer.update();
     }
 
     // ── Segment subdivision for spline-like blending ───────────────────────
@@ -485,28 +448,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
 
     @NonNull
     protected VectorLayer.GestureListener createGestureListener() {
-        return (type, eventParams) -> {
-            if (eventCallback == null) return;
-            WritableMap payload = new WritableNativeMap();
-            if (eventParams.hasKey("uuid")) {
-                payload.putString("uuid", eventParams.getString("uuid"));
-            }
-            if (eventParams.hasKey("distance")) {
-                payload.putDouble("distance",
-                        eventParams.getDouble("distance"));
-            }
-            if (eventParams.hasKey("nearestPoint")) {
-                payload.putArray("nearestPoint",
-                        eventParams.getArray("nearestPoint"));
-            }
-            if (eventParams.hasKey("eventPosition")) {
-                payload.putArray("eventPosition",
-                        eventParams.getArray("eventPosition"));
-            }
-            payload.putString("type", type);
-            payload.putInt("nativeNodeHandle", nativeNodeHandle);
-            eventCallback.emit("onPathEvent", payload);
-        };
+        return super.createGestureListener();
     }
 
 }

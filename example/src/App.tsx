@@ -2004,17 +2004,17 @@ export default function App() {
   const { segmentColors, colorRampStops, normalizedValues } = usePathColorRamp({
     coordinates,
     segmentValues: slopeValues,
-    colorRamp: [
-      { value: -22, color: '#00004d', unit: 'percent' }, // 30% blue
-      { value: -13, color: '#000080', unit: 'percent' }, // 50% blue
-      { value: -8, color: '#0000ff', unit: 'percent' },  // 100% blue
-      { value: -3, color: '#00e8ff', unit: 'percent' },  // light blue
-      { value: 0, color: '#00ff00' }, // green
-      { value: 3, color: '#FFDE02', unit: 'percent' }, // yellow
-      { value: 8, color: '#ff0000', unit: 'percent' }, // 100% red
-      { value: 13, color: '#800000', unit: 'percent' },  // 50% red
-      { value: 22, color: '#4d0000', unit: 'percent' },  // 30% red
-    ],
+    // colorRamp: [
+    //   { value: -22, color: '#00004d', unit: 'percent' }, // 30% blue
+    //   { value: -13, color: '#000080', unit: 'percent' }, // 50% blue
+    //   { value: -8, color: '#0000ff', unit: 'percent' },  // 100% blue
+    //   { value: -3, color: '#00e8ff', unit: 'percent' },  // light blue
+    //   { value: 0, color: '#00ff00' }, // green
+    //   { value: 3, color: '#FFDE02', unit: 'percent' }, // yellow
+    //   { value: 8, color: '#ff0000', unit: 'percent' }, // 100% red
+    //   { value: 13, color: '#800000', unit: 'percent' },  // 50% red
+    //   { value: 22, color: '#4d0000', unit: 'percent' },  // 30% red
+    // ],
   });
 
   return (
@@ -2031,7 +2031,7 @@ export default function App() {
             coordinates={coordinates}
             segmentValues={normalizedValues}
             colorRampStops={colorRampStops}
-            style={{ strokeWidth: 6, strokeColor: '#ffffff' }}
+            style={{ strokeWidth: 6 }}
           />
         )}
       </MapContainer>

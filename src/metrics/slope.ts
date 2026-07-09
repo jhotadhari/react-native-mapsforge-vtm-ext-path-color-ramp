@@ -74,6 +74,7 @@ export function calculateSlope(
 	// 4. Compute per-segment slopes.
 	const totalDist = dists[dists.length - 1]!;
 	const slopes: number[] = [];
+	let hint = 0;
 
 	for (let seg = 0; seg < coordinates.length - 1; seg++) {
 		const segStartDist = dists[seg]!;
@@ -100,24 +101,30 @@ export function calculateSlope(
 		}
 
 		// Central finite difference over fixed spatial window.
-		const elevBehind = interpolateElevation(
+		// Uses a travelling hint so the segment search is O(n) total.
+		const behind = interpolateElevation(
 			dists,
 			elevations,
-			segMidDist - halfRange
+			segMidDist - halfRange,
+			hint
 		);
-		const elevAhead = interpolateElevation(
+		hint = behind.hint;
+		const ahead = interpolateElevation(
 			dists,
 			elevations,
-			segMidDist + halfRange
+			segMidDist + halfRange,
+			hint
 		);
+		hint = ahead.hint;
 
-		if (elevBehind == null || elevAhead == null) {
+		if (behind.value == null || ahead.value == null) {
 			slopes.push(0);
 			continue;
 		}
 
 		slopes.push(
-			Math.atan((elevAhead - elevBehind) / slopeRange) * (180 / Math.PI)
+			Math.atan((ahead.value - behind.value) / slopeRange) *
+				(180 / Math.PI)
 		);
 	}
 
@@ -261,30 +268,34 @@ function fillElevations(arr: readonly (number | undefined | null)[]): number[] {
 
 /**
  * Linearly interpolate the elevation at a given distance along the path.
- * Returns {@code null} if the distance is outside the path bounds.
+ * Accepts a {@code hint} index to resume searching from (the caller passes
+ * monotonically increasing distances, so the containing segment never moves
+ * backward).  Returns the interpolated elevation and the updated hint.
+ * Returns {@code null} elevation if the distance is outside path bounds.
  */
 function interpolateElevation(
 	dists: number[],
 	elevations: readonly (number | undefined)[],
-	targetDist: number
-): number | null {
+	targetDist: number,
+	hint: number
+): { value: number | null; hint: number } {
 	if (targetDist < 0 || targetDist > (dists[dists.length - 1] ?? 0)) {
-		return null;
+		return { value: null, hint };
 	}
 
-	// Find the segment that contains targetDist.
-	for (let i = 0; i < dists.length - 1; i++) {
+	// Resume from the hint index (targetDist is monotonic).
+	for (let i = hint; i < dists.length - 1; i++) {
 		const d0 = dists[i]!;
 		const d1 = dists[i + 1]!;
 		if (targetDist >= d0 && targetDist <= d1) {
 			const segLen = d1 - d0;
-			if (segLen === 0) return elevations[i] ?? 0;
+			if (segLen === 0) return { value: elevations[i] ?? 0, hint: i };
 			const t = (targetDist - d0) / segLen;
 			const e0 = elevations[i] ?? 0;
 			const e1 = elevations[i + 1] ?? 0;
-			return e0 + (e1 - e0) * t;
+			return { value: e0 + (e1 - e0) * t, hint: i };
 		}
 	}
 
-	return null;
+	return { value: null, hint };
 }

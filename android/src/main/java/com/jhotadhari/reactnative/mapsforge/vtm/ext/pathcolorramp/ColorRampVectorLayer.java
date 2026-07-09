@@ -173,11 +173,16 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
         if (d instanceof LineDrawable) {
             float[] values = drawableValues.get(d);
             if (values != null) {
-                drawLineWithValues(t, level, d.getGeometry(), style, values);
+                drawLineWithValues(t, level, d, style, values);
                 return;
             }
         }
-        // Fall through to standard rendering.
+        // Fall through to standard rendering.  Clear any stale colour-
+        // ramp state that may have been set by a prior value-bearing
+        // drawable that used the same LineBucket in this update cycle.
+        LineBucket ll = t.buckets.getLineBucket(level);
+        ll.mHasColorRamp = false;
+        ll.mColorRampTexID = 0;
         super.draw(t, level, d, style);
     }
 
@@ -187,18 +192,19 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
      * {@link LineBucket#addLine(float[], int[], int, boolean, float[])}.
      */
     protected void drawLineWithValues(Task t, int level,
-                                      org.locationtech.jts.geom.Geometry line,
+                                      Drawable drawable,
                                       Style style,
                                       float[] values) {
 
         // ── Stippled / textured lines use LineTexBucket which lacks
-        //     a_value / u_colorRamp support. Fall back to standard rendering.
+        //     a_value / u_colorRamp support. Colour-ramp values are
+        //     silently ignored for these styles.
         if (style.stipple != 0 || style.texture != null) {
-            super.draw(t, level, new org.oscim.layers.vector.geometries.LineDrawable(
-                    line, style), style);
+            super.draw(t, level, drawable, style);
             return;
         }
 
+        org.locationtech.jts.geom.Geometry line = drawable.getGeometry();
         LineBucket ll = t.buckets.getLineBucket(level);
         // Use the static color-ramp texture uploaded by the GL-thread Renderer.
         // mHasColorRamp is only set when the texture has actually been uploaded
