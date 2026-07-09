@@ -3153,7 +3153,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^19.2.17":
+"@types/react-test-renderer@npm:^19.1.0":
+  version: 19.1.0
+  resolution: "@types/react-test-renderer@npm:19.1.0"
+  dependencies:
+    "@types/react": "*"
+  checksum: 2ef3aec0f2fd638902cda606d70c8531d66f8e8944334427986b99dcac9755ee60b700c5c3a19ac354680f9c45669e98077b84f79cac60e950bdb7d38aebffde
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:*, @types/react@npm:^19.2.17":
   version: 19.2.17
   resolution: "@types/react@npm:19.2.17"
   dependencies:
@@ -8429,6 +8438,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-is@npm:^19.2.7":
+  version: 19.2.7
+  resolution: "react-is@npm:19.2.7"
+  checksum: 148ee03b481ace8370cb9b96de386598423ed44ad36090c45ce3f905aec496db6f2675da720bbe43f39d66c43c9a16757cb71e9e55217825707dae97f0cf200f
+  languageName: node
+  linkType: hard
+
 "react-native-builder-bob@npm:^0.43.0":
   version: 0.43.0
   resolution: "react-native-builder-bob@npm:0.43.0"
@@ -8496,14 +8512,14 @@ __metadata:
 
 "react-native-mapsforge-vtm-ext-path-color-ramp@file:.yalc/react-native-mapsforge-vtm-ext-path-color-ramp::locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample":
   version: 0.0.1
-  resolution: "react-native-mapsforge-vtm-ext-path-color-ramp@file:.yalc/react-native-mapsforge-vtm-ext-path-color-ramp#.yalc/react-native-mapsforge-vtm-ext-path-color-ramp::hash=bc4f27&locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample"
+  resolution: "react-native-mapsforge-vtm-ext-path-color-ramp@file:.yalc/react-native-mapsforge-vtm-ext-path-color-ramp#.yalc/react-native-mapsforge-vtm-ext-path-color-ramp::hash=f2dc8c&locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample"
   dependencies:
     react-native-worklets: ^0.10.1
   peerDependencies:
     react: "*"
     react-native: ">=0.80.0"
     react-native-mapsforge-vtm: ">=0.7.0"
-  checksum: d6522244860ebac3c6fc6566851337e156f6023125067169074254b031c392aab63f580c22e4081a10742f171cca0e71a0cd37cdb29660a39f3a531867b3946b
+  checksum: f93f1e92367dc610a5b15ad0535a7ff405555419062162ddb771019460621a1f9fe97e2041ce1447f9181fdad442f3757b4d73530f30b003f3917d52abd48d35
   languageName: node
   linkType: hard
 
@@ -8520,6 +8536,7 @@ __metadata:
     "@types/geojson": ^7946.0.16
     "@types/jest": ^29.5.5
     "@types/react": ^19.2.17
+    "@types/react-test-renderer": ^19.1.0
     del-cli: ^7.0.0
     eslint: ^9.22.0
     eslint-config-prettier: ^10.1.8
@@ -8533,6 +8550,7 @@ __metadata:
     react-native-builder-bob: ^0.43.0
     react-native-mapsforge-vtm: "file:example/node_modules/react-native-mapsforge-vtm"
     react-native-worklets: ^0.10.1
+    react-test-renderer: ^19.2.7
     typescript: ^6.0.3
   peerDependencies:
     react: "*"
@@ -8543,7 +8561,7 @@ __metadata:
 
 "react-native-mapsforge-vtm@file:.yalc/react-native-mapsforge-vtm::locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample":
   version: 0.7.0
-  resolution: "react-native-mapsforge-vtm@file:.yalc/react-native-mapsforge-vtm#.yalc/react-native-mapsforge-vtm::hash=cc43f4&locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample"
+  resolution: "react-native-mapsforge-vtm@file:.yalc/react-native-mapsforge-vtm#.yalc/react-native-mapsforge-vtm::hash=848db9&locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample"
   dependencies:
     lodash-es: ^4.17.21
   peerDependencies:
@@ -8556,13 +8574,13 @@ __metadata:
       optional: true
     react-native-worklets:
       optional: true
-  checksum: 1b7ad82e22f86b24bb2807dba78e89b216502b2e758098f6b1c00e236861f59b7fc8106c4db20d3ba4321e2dea14770ab8915febae6b1baa2c0d327060367739
+  checksum: 2f7ab20fa9120daa5cc84e2996a1a4acc4a38f5694f3a561fe5b4dfd7b5d4164e6a01c8f0b61fda666c7f8d46846d5ec44ba70478d19ccdd5d02fcdeb749dc46
   languageName: node
   linkType: hard
 
 "react-native-mapsforge-vtm@file:example/node_modules/react-native-mapsforge-vtm::locator=react-native-mapsforge-vtm-ext-path-color-ramp%40workspace%3A.":
   version: 0.7.0
-  resolution: "react-native-mapsforge-vtm@file:example/node_modules/react-native-mapsforge-vtm#example/node_modules/react-native-mapsforge-vtm::hash=01c5c0&locator=react-native-mapsforge-vtm-ext-path-color-ramp%40workspace%3A."
+  resolution: "react-native-mapsforge-vtm@file:example/node_modules/react-native-mapsforge-vtm#example/node_modules/react-native-mapsforge-vtm::hash=848db9&locator=react-native-mapsforge-vtm-ext-path-color-ramp%40workspace%3A."
   dependencies:
     lodash-es: ^4.17.21
   peerDependencies:
@@ -8575,7 +8593,7 @@ __metadata:
       optional: true
     react-native-worklets:
       optional: true
-  checksum: e9a23cf727c23e87291be05efb879c9f425a9ef5853838720922af9e804bae5c96f1927e3fc1451e47e400ff9a0fcba135f06f98d8c53db2aff3b5b679b0c993
+  checksum: 2f7ab20fa9120daa5cc84e2996a1a4acc4a38f5694f3a561fe5b4dfd7b5d4164e6a01c8f0b61fda666c7f8d46846d5ec44ba70478d19ccdd5d02fcdeb749dc46
   languageName: node
   linkType: hard
 
@@ -8673,6 +8691,18 @@ __metadata:
   version: 0.14.2
   resolution: "react-refresh@npm:0.14.2"
   checksum: d80db4bd40a36dab79010dc8aa317a5b931f960c0d83c4f3b81f0552cbcf7f29e115b84bb7908ec6a1eb67720fff7023084eff73ece8a7ddc694882478464382
+  languageName: node
+  linkType: hard
+
+"react-test-renderer@npm:^19.2.7":
+  version: 19.2.7
+  resolution: "react-test-renderer@npm:19.2.7"
+  dependencies:
+    react-is: ^19.2.7
+    scheduler: ^0.27.0
+  peerDependencies:
+    react: ^19.2.7
+  checksum: 236f5ab00e8720f2613be85e887be7c7d251196326992a6c1900dbe5176d1c950840d8a88295302c21124de9c9481470711e464c8cebbbd610f495d5f644532c
   languageName: node
   linkType: hard
 
@@ -8957,7 +8987,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"scheduler@npm:0.27.0":
+"scheduler@npm:0.27.0, scheduler@npm:^0.27.0":
   version: 0.27.0
   resolution: "scheduler@npm:0.27.0"
   checksum: 92644ead0a9443e20f9d24132fe93675b156209b9eeb35ea245f8a86768d0cc0fcca56f341eeef21d9b6dd8e72d6d5e260eb5a41d34b05cd605dd45a29f572ef
