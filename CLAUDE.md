@@ -268,3 +268,18 @@ but could break if regular paths and color-ramp paths share a frame.
 
 The example app uses `react-native-reanimated` >= 4.x which requires `react-native-worklets`
 as a peer dependency.
+
+### `LineDrawable` stores coordinates in reverse order `{end, start}`
+
+`LineDrawable(double[] segment, Style)` constructor takes the segment as
+`{endX, endY, startX, startY}` — the end point comes first. After JTS
+`transformLineString`, the geometry buffer has the end point as the first vertex
+and the start point as the last vertex. In `LineBucket.addLineWithValues`,
+`values[0]` maps to the first (end) vertex and `values[last]` maps to the last
+(start) vertex. The **effective gradient along the path** (start → end) is
+`values[last] → values[0]`.
+
+To produce a gradient `A → B` from start to end, pass the values array as
+`{B, A}` (reversed). This matters for directional blend zones in
+`ColorRampPathLayerManager.addSegmentDrawables()`. Pure zones (`segVal → segVal`)
+are unaffected since both values are equal.
