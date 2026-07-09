@@ -173,11 +173,20 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                             + ") for entry " + entryUuid
                             + "; values will be mismatched");
                 }
+                // Read blend ratio (fraction of each segment used for
+                // colour blending at borders). 0 = hard segment edges;
+                // 0.15 = 15% blend at each end, 70% pure middle.
+                float blendRatio = 0.15f;
+                if (Utils.rMapHasKey(params, "blendRatio")) {
+                    blendRatio = (float) params.getDouble("blendRatio");
+                    blendRatio = Math.max(0.0f, Math.min(0.45f, blendRatio));
+                }
+
                 // Pre-compute per-vertex values. Each vertex connecting
-                // two segments blends those segments' values. The blend
-                // strength is controlled by BLEND_LENGTH_M: segments
-                // shorter than this blend fully; longer segments keep
-                // more of their own colour through the middle.
+                // two segments blends those segments' values.  With
+                // sub-segment subdivision, boundary values are the
+                // average of adjacent segment values so neighbouring
+                // blend zones meet at the same colour.
                 float[] vertexVals = new float[coords.length];
                 for (int i = 0; i < coords.length; i++) {
                     if (i == 0) {
@@ -191,31 +200,18 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                                 ? segmentValues[i - 1] : 0.5f;
                         float b = i < segmentValues.length
                                 ? segmentValues[i] : 0.5f;
-
-                        // Simple average of adjacent segment values at
-                        // connecting vertices.  The GPU linearly interpolates
-                        // between start and end vertices within each segment,
-                        // producing a smooth gradient.
                         vertexVals[i] = (a + b) / 2.0f;
                     }
                 }
-                for (int i = 0; i < coords.length; i++) {
-                    if (i != 0) {
-                        double[] segment = new double[4];
-                        segment[0] = coords[i].x;
-                        segment[1] = coords[i].y;
-                        segment[2] = coords[i - 1].x;
-                        segment[3] = coords[i - 1].y;
-                        LineDrawable drawable = new LineDrawable(
-                                segment, style);
-                        drawable.setPriority(entry.positionIndex);
-
-                        // Pass both vertex values so the line builder
-                        // can assign per-vertex colors for smooth shading.
-                        crLayer.addLineDrawableWithValues(drawable,
-                                new float[]{vertexVals[i - 1], vertexVals[i]});
-                        entry.drawables.add(drawable);
-                    }
+                for (int i = 1; i < coords.length; i++) {
+                    int segIdx = i - 1;
+                    float segVal = segIdx < segmentValues.length
+                            ? segmentValues[segIdx] : 0.5f;
+                    float startVal = vertexVals[i - 1];
+                    float endVal = vertexVals[i];
+                    addSegmentDrawables(crLayer, entry, style,
+                            coords[i - 1], coords[i],
+                            startVal, segVal, endVal, blendRatio);
                 }
 
                 entrySegmentValues.put(entryUuid, segmentValues);
@@ -305,6 +301,12 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                 }
                 // Per-vertex averaging — mirrors createEntry() so updates
                 // produce the same smooth gradients as initial creation.
+                float blendRatio = 0.15f;
+                if (Utils.rMapHasKey(params, "blendRatio")) {
+                    blendRatio = (float) params.getDouble("blendRatio");
+                    blendRatio = Math.max(0.0f, Math.min(0.45f, blendRatio));
+                }
+
                 float[] vertexVals = new float[coords.length];
                 for (int i = 0; i < coords.length; i++) {
                     if (i == 0) {
@@ -321,21 +323,15 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                         vertexVals[i] = (a + b) / 2.0f;
                     }
                 }
-                for (int i = 0; i < coords.length; i++) {
-                    if (i != 0) {
-                        double[] segment = new double[4];
-                        segment[0] = coords[i].x;
-                        segment[1] = coords[i].y;
-                        segment[2] = coords[i - 1].x;
-                        segment[3] = coords[i - 1].y;
-                        LineDrawable drawable = new LineDrawable(
-                                segment, style);
-                        drawable.setPriority(entry.positionIndex);
-
-                        crLayer.addLineDrawableWithValues(drawable,
-                                new float[]{vertexVals[i - 1], vertexVals[i]});
-                        entry.drawables.add(drawable);
-                    }
+                for (int i = 1; i < coords.length; i++) {
+                    int segIdx = i - 1;
+                    float segVal = segIdx < segmentValues.length
+                            ? segmentValues[segIdx] : 0.5f;
+                    float startVal = vertexVals[i - 1];
+                    float endVal = vertexVals[i];
+                    addSegmentDrawables(crLayer, entry, style,
+                            coords[i - 1], coords[i],
+                            startVal, segVal, endVal, blendRatio);
                 }
                 crLayer.update();
             }
@@ -365,6 +361,81 @@ public class ColorRampPathLayerManager extends PathLayerManager {
     @Nullable
     public float[] getSegmentValues(@NonNull String entryUuid) {
         return entrySegmentValues.get(entryUuid);
+    }
+
+    // ── Segment subdivision for spline-like blending ───────────────────────
+
+    /**
+     * Creates one or more {@link LineDrawable}s for a single path segment,
+     * subdividing into entry-blend / pure / exit-blend zones so the GPU
+     * linearly interpolates across short blend zones while the middle of
+     * the segment stays at its true colour.
+     *
+     * <pre>
+     *   c0  ──[entry: startVal→segVal]──▶ mid1
+     *       ──[pure:   segVal→segVal  ]──▶ mid2
+     *       ──[exit:   segVal→endVal  ]──▶ c1
+     * </pre>
+     *
+     * @param crLayer    target colour-ramp layer
+     * @param entry      path entry (for priority)
+     * @param style      line style
+     * @param c0         segment start coordinate
+     * @param c1         segment end coordinate
+     * @param startVal   value at c0 (vertex average with previous segment)
+     * @param segVal     true value of this segment
+     * @param endVal     value at c1 (vertex average with next segment)
+     * @param blendRatio fraction of segment length used for each blend zone
+     */
+    private void addSegmentDrawables(
+            @NonNull ColorRampVectorLayer crLayer,
+            @NonNull PathEntry entry,
+            @NonNull Style style,
+            @NonNull org.locationtech.jts.geom.Coordinate c0,
+            @NonNull org.locationtech.jts.geom.Coordinate c1,
+            float startVal, float segVal, float endVal,
+            float blendRatio) {
+
+        if (blendRatio < 0.01f) {
+            // No blending — single drawable with vertex-averaged boundaries.
+            double[] seg = new double[]{c1.x, c1.y, c0.x, c0.y};
+            LineDrawable d = new LineDrawable(seg, style);
+            d.setPriority(entry.positionIndex);
+            crLayer.addLineDrawableWithValues(d,
+                    new float[]{startVal, endVal});
+            entry.drawables.add(d);
+            return;
+        }
+
+        double t = blendRatio;
+        double mx1 = c0.x + (c1.x - c0.x) * t;
+        double my1 = c0.y + (c1.y - c0.y) * t;
+        double mx2 = c0.x + (c1.x - c0.x) * (1.0 - t);
+        double my2 = c0.y + (c1.y - c0.y) * (1.0 - t);
+
+        // Entry blend zone: c0 → mid1, values: startVal → segVal
+        double[] entrySeg = new double[]{mx1, my1, c0.x, c0.y};
+        LineDrawable entryD = new LineDrawable(entrySeg, style);
+        entryD.setPriority(entry.positionIndex);
+        crLayer.addLineDrawableWithValues(entryD,
+                new float[]{startVal, segVal});
+        entry.drawables.add(entryD);
+
+        // Pure zone: mid1 → mid2, values: segVal → segVal
+        double[] pureSeg = new double[]{mx2, my2, mx1, my1};
+        LineDrawable pureD = new LineDrawable(pureSeg, style);
+        pureD.setPriority(entry.positionIndex);
+        crLayer.addLineDrawableWithValues(pureD,
+                new float[]{segVal, segVal});
+        entry.drawables.add(pureD);
+
+        // Exit blend zone: mid2 → c1, values: segVal → endVal
+        double[] exitSeg = new double[]{c1.x, c1.y, mx2, my2};
+        LineDrawable exitD = new LineDrawable(exitSeg, style);
+        exitD.setPriority(entry.positionIndex);
+        crLayer.addLineDrawableWithValues(exitD,
+                new float[]{segVal, endVal});
+        entry.drawables.add(exitD);
     }
 
     // ── Gesture listener factory ───────────────────────────────────────────

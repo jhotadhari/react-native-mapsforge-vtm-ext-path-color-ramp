@@ -72,6 +72,7 @@ const LayerPathColorRamp = ({
 	coordinates,
 	segmentValues,
 	colorRampStops,
+	blendRatio,
 	style,
 	onCreate,
 	onRemove,
@@ -109,6 +110,7 @@ const LayerPathColorRamp = ({
 				coordinates,
 				...(segmentValues && { segmentValues }),
 				...(colorRampStops && { colorRampStops }),
+				...(blendRatio !== undefined && { blendRatio }),
 				...(style && { style }),
 			}).then((response: LayerPathColorRampResponse) => {
 				triggerOnCreate && onCreate ? onCreate(response) : null;
@@ -161,6 +163,7 @@ const LayerPathColorRamp = ({
 		coordinates,
 		segmentValues,
 		colorRampStops,
+		blendRatio,
 		style,
 		triggerRemove,
 		triggerCreate,
