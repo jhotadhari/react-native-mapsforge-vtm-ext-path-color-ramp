@@ -111,7 +111,7 @@ const LayerPathColorRamp = ({
 				...(segmentValues && { segmentValues }),
 				...(colorRampStops && { colorRampStops }),
 				...(blendRatio !== undefined && { blendRatio }),
-				...(style && { style }),
+				style: { strokeColor: '#ffffff', ...style },
 			}).then((response: LayerPathColorRampResponse) => {
 				triggerOnCreate && onCreate ? onCreate(response) : null;
 				triggerOnChange && onChange ? onChange(response) : null;

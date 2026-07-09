@@ -2025,7 +2025,7 @@ export default function App() {
             coordinates={coordinates}
             segmentValues={normalizedValues}
             colorRampStops={colorRampStops}
-            style={{ strokeWidth: 6, strokeColor: '#ffffff' }}
+            style={{ strokeWidth: 6 }}
           />
         )}
       </MapContainer>
