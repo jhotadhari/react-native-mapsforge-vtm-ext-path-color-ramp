@@ -257,12 +257,20 @@ The value fragment shader multiplies the stroke color by the ramp lookup:
 (white) so the ramp color shows through unchanged. Setting strokeColor to e.g., red makes
 red × rampColor = black for most ramp entries.
 
-### VERTEX_CNT[LINE] = 5 and VBO layout
+### VERTEX_CNT[LINE] = 5 and VBO layout — NOT a bug (verified 2026-07-10)
 
-Changing `VERTEX_CNT[LINE]` from 4 to 5 affects ALL line buckets in the VBO, not just
-color-ramp ones. Original vtm buckets with 4 shorts/vertex will have stride misalignment
-if mixed in the same frame. This works when all LINE buckets in a frame use 5-short vertices,
-but could break if regular paths and color-ramp paths share a frame.
+Shadowing ensures ALL LINE buckets consistently have 5 shorts/vertex:
+- `RenderBuckets` is shadowed → `VERTEX_CNT[LINE] = 5` and `getBucket(LINE)` creates the
+  shadowed `LineBucket` for ALL callers (including vtm's own `VectorLayer.drawLine()`).
+- `LineBucket` is shadowed → even the original `addLine(GeometryBuffer)` (no values)
+  writes 5 shorts/vertex with value=0.5f as the 5th short (confirmed via JAR bytecode).
+- `Renderer.draw()` always sets stride=10 for `aPos`. Original shaders skip the 5th short
+  via GL stride (standard interleaved vertex pattern). Value shaders read both `aPos`
+  (offset 0, 4 comps) and `aValue` (offset 8, 1 comp). Both use the same stride.
+- `mHasColorRamp` selects the correct shader per-bucket at draw time.
+
+Verified: vtm's `VectorLayer.drawLine()` calls `LineBucket.addLine(GeometryBuffer)` which
+resolves to the shadowed version → all LINE vertices are 5-short, no mixing possible.
 
 ### `react-native-worklets` required for reanimated v4
 

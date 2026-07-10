@@ -39,4 +39,23 @@ Android only — iOS support is out of scope permanently.
 
 - [x] Write tests for JS utilities (`usePathColorRamp`, `colorInterpolation`, `slope`, `elevation`)
 - [x] Add README usage examples (vertex-gradient mode, blend zones, metric toggle, color ramps)
-- [ ] Investigate VBO stride concern: `VERTEX_CNT[LINE] = 5` affects all line buckets — could regular paths and color-ramp paths sharing a frame cause stride misalignment?
+- [x] Investigate VBO stride concern → **NOT a bug** (see below)
+
+### VBO stride investigation (2026-07-10)
+
+**Claim:** `VERTEX_CNT[LINE] = 5` might cause stride misalignment when regular paths
+and color-ramp paths share a frame.
+
+**Investigation result: FALSE ALARM — the implementation is correct.**
+
+The concern assumed regular paths might use 4 shorts/vertex while color-ramp paths use
+5, but shadowing prevents this from ever happening:
+
+1. **`RenderBuckets` is shadowed** → `VERTEX_CNT[LINE] = 5` and `getBucket(LINE)` creates the shadowed `LineBucket(level)` constructor — ALL line buckets, regardless of origin, have 5 shorts/vertex.
+2. **`LineBucket` is shadowed** → ALL addVertex/addLine methods write 5 shorts (even the original `addLine(GeometryBuffer)` called by vtm's `VectorLayer.drawLine()`, which resolves to the shadowed version and writes value=0.5f as the 5th short).
+3. **`Renderer.draw()` sets stride=10 for ALL shader sets** → the original shaders only read 4 components from `aPos`, so the 5th short is skipped via GL stride. The value shaders read `aPos` (offset 0, 4 comps) + `aValue` (offset 8, 1 comp). Both use stride=10.
+4. **`mHasColorRamp` selects the shader per-bucket** → regular paths use the original shader (skipping the value short), color-ramp paths use the value shader.
+
+This is a standard OpenGL interleaved vertex attribute pattern — the stride can legally be larger than `componentCount * componentSize`. The GPU skips the extra bytes between vertices.
+
+Verified via bytecode decompilation: vtm's `VectorLayer.drawLine()` calls `LineBucket.addLine(GeometryBuffer)` (confirmed in JAR bytecode), which resolves to the shadowed 5-short version.
