@@ -156,7 +156,10 @@ const LayerPathColorRamp = ({
 		onError,
 	});
 
-	const { positionIndex, fragmentUuid } = useLayerOrder(uuid, 'path');
+	const { positionIndex, fragmentUuid } = useLayerOrder(
+		uuid,
+		'path_colorramp'
+	);
 	positionIndexRef.current = positionIndex;
 	fragmentUuidRef.current = fragmentUuid;
 
