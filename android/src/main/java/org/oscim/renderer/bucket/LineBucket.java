@@ -865,10 +865,18 @@ public class LineBucket extends RenderBucket {
                     }
                 }
 
-                // Bind per-bucket color-ramp texture at unit 1.
+                // Bind color-ramp texture at unit 1.
+                // Use the CURRENT static sColorRampTexID directly rather than
+                // the per-bucket mColorRampTexID, which is a snapshot taken
+                // during the update phase and may point to a now-deleted GL
+                // texture.  Fall back to the default 1×1 white texture when
+                // no ramp has been uploaded yet — this avoids first-frame
+                // black rendering on dynamically added layers.
                 if (useValue) {
                     gl.activeTexture(GL.TEXTURE1);
-                    gl.bindTexture(GL.TEXTURE_2D, lb.mColorRampTexID);
+                    int texID = (sColorRampTexID != 0)
+                            ? sColorRampTexID : mDefaultRampTexID;
+                    gl.bindTexture(GL.TEXTURE_2D, texID);
                     gl.uniform1i(s.uColorRamp, 1);
                     gl.activeTexture(GL.TEXTURE0);
                 }

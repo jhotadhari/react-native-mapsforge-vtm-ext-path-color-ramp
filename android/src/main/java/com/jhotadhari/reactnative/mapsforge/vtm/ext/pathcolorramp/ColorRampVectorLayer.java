@@ -206,12 +206,17 @@ public class ColorRampVectorLayer extends com.jhotadhari.reactnative.mapsforge.v
 
         org.locationtech.jts.geom.Geometry line = drawable.getGeometry();
         LineBucket ll = t.buckets.getLineBucket(level);
-        // Use the static color-ramp texture uploaded by the GL-thread Renderer.
-        // mHasColorRamp is only set when the texture has actually been uploaded
-        // (sColorRampTexID != 0), avoiding first-frame texture-0 binding.
-        int texID = LineBucket.Renderer.sColorRampTexID;
-        ll.mColorRampTexID = texID;
-        ll.mHasColorRamp = (texID != 0);
+        // Mark this bucket as having color-ramp data so the GL-thread
+        // Renderer selects the value shader.  mHasColorRamp is always set
+        // to true — the Renderer falls back to the default 1×1 white
+        // texture when sColorRampTexID hasn't been uploaded yet, so the
+        // path renders white (not black) on the very first frame.
+        // The per-bucket mColorRampTexID is a best-effort snapshot of
+        // sColorRampTexID taken during the update phase; the Renderer
+        // ignores it for binding and instead uses sColorRampTexID directly
+        // to avoid stale-texture races when a new ramp replaces the old one.
+        ll.mHasColorRamp = true;
+        ll.mColorRampTexID = LineBucket.Renderer.sColorRampTexID;
         if (ll.line == null) {
             ll.line = LineStyle.builder()
                     .reset()
