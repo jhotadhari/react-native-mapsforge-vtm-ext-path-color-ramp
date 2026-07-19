@@ -3,6 +3,8 @@ package com.jhotadhari.reactnative.mapsforge.vtm.ext.pathcolorramp.modules;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import android.util.Log;
+
 import com.facebook.proguard.annotations.DoNotStrip;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -47,6 +49,7 @@ import java.util.UUID;
 public class LayerPathColorRamp extends ReactContextBaseJavaModule implements TurboModule {
 
     public static final String NAME = "LayerPathColorRamp";
+    private static final String TAG = "LayerPathColorRamp";
 
     public LayerPathColorRamp(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -245,9 +248,20 @@ public class LayerPathColorRamp extends ReactContextBaseJavaModule implements Tu
 
             ColorRampPathLayerManager manager =
                     ColorRampPathLayerManager.getInstance(nativeNodeHandle);
-            if (manager != null) {
-                manager.remove(uuid);
+            if (manager == null) {
+                Log.w(TAG,
+                    "ZOMBIE: getInstance returned null for nativeNodeHandle="
+                        + nativeNodeHandle + " uuid=" + uuid
+                        + " — manager was destroyed"
+                        + " before removeLayer arrived");
+                Utils.promiseReject(promise,
+                    "ColorRampPathLayerManager not found for nativeNodeHandle="
+                        + nativeNodeHandle
+                        + " (may have been destroyed"
+                        + " before removeLayer arrived)");
+                return;
             }
+            manager.remove(uuid);
             promise.resolve(uuid);
         } catch (Exception e) {
             e.printStackTrace();
