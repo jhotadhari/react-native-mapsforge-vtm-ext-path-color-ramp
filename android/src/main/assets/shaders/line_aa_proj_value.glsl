@@ -1,5 +1,5 @@
 /*
- * SHADOWED from vtm v0.28.0 line_aa_proj.glsl — added a_value + u_colorRamp.
+ * SHADOWED from vtm v0.29.0 line_aa_proj.glsl — added a_value + u_colorRamp.
  *
  * Changes from upstream:
  *   - Vertex: +attribute float a_value, +varying float v_value

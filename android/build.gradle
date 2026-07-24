@@ -100,9 +100,9 @@ dependencies {
 
   // vtm — same versions as core library; compileOnly to avoid dex duplicates
   // (provided at runtime by react-native-mapsforge-vtm)
-  compileOnly 'com.github.mapsforge.vtm:vtm:0.28.0'
-  compileOnly 'com.github.mapsforge.vtm:vtm-android:0.28.0'
-  compileOnly 'com.github.mapsforge.vtm:vtm-jts:0.28.0'
+  compileOnly 'com.github.mapsforge.vtm:vtm:0.29.0'
+  compileOnly 'com.github.mapsforge.vtm:vtm-android:0.29.0'
+  compileOnly 'com.github.mapsforge.vtm:vtm-jts:0.29.0'
   compileOnly 'org.locationtech.jts:jts-core:1.20.0'
 }
 

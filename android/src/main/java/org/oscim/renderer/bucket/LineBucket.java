@@ -17,7 +17,7 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * -----------------------------------------------------------------------------------
- * SHADOWED from vtm v0.28.0 (mapsforge/vtm) — modified for per-vertex value support.
+ * SHADOWED from vtm v0.29.0 (mapsforge/vtm) — modified for per-vertex value support.
  *
  * Changes from upstream:
  *   - Vertex format extended from 4 → 5 shorts: (x, y, dx, dy, value).

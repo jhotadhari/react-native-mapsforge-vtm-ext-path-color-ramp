@@ -16,7 +16,7 @@
  * this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * -----------------------------------------------------------------------------------
- * SHADOWED from vtm v0.28.0 (mapsforge/vtm) — one constant changed.
+ * SHADOWED from vtm v0.29.0 (mapsforge/vtm) — one constant changed.
  *
  * Changes from upstream:
  *   - VERTEX_CNT[LINE] (index 0): 4 → 5.
