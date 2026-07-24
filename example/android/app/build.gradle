@@ -72,6 +72,10 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+// Strip vtm classes shadowed by this extension (e.g. LineBucket, RenderBuckets).
+// Must run before DEX merge to prevent "Type X is defined multiple times" errors.
+apply from: "${projectDir}/../../node_modules/react-native-mapsforge-vtm/android/strip-vtm-classes.gradle"
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
