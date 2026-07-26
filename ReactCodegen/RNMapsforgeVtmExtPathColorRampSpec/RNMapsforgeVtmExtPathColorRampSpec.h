@@ -34,7 +34,7 @@
 NS_ASSUME_NONNULL_BEGIN
 namespace JS {
   namespace NativeLayerPathColorRamp {
-    struct GeometryStyle {
+    struct PathPaint {
       std::optional<double> strokeWidth() const;
       NSString *strokeColor() const;
       NSString *fillColor() const;
@@ -54,15 +54,15 @@ namespace JS {
       std::optional<bool> randomOffset() const;
       std::optional<bool> transparent() const;
 
-      GeometryStyle(NSDictionary *const v) : _v(v) {}
+      PathPaint(NSDictionary *const v) : _v(v) {}
     private:
       NSDictionary *_v;
     };
   }
 }
 
-@interface RCTCxxConvert (NativeLayerPathColorRamp_GeometryStyle)
-+ (RCTManagedPointer *)JS_NativeLayerPathColorRamp_GeometryStyle:(id)json;
+@interface RCTCxxConvert (NativeLayerPathColorRamp_PathPaint)
++ (RCTManagedPointer *)JS_NativeLayerPathColorRamp_PathPaint:(id)json;
 @end
 namespace JS {
   namespace NativeLayerPathColorRamp {
@@ -76,7 +76,7 @@ namespace JS {
       std::optional<facebook::react::LazyVector<NSString *>> colorRampStops() const;
       std::optional<double> blendRatio() const;
       std::optional<bool> supportsGestures() const;
-      std::optional<JS::NativeLayerPathColorRamp::GeometryStyle> style() const;
+      std::optional<JS::NativeLayerPathColorRamp::PathPaint> paint() const;
 
       CreateLayerParams(NSDictionary *const v) : _v(v) {}
     private:
@@ -106,11 +106,11 @@ namespace JS {
 @end
 namespace JS {
   namespace NativeLayerPathColorRamp {
-    struct ConstantsStyle {
+    struct ConstantsPaint {
 
       struct Builder {
         // Backwards compat for RCTTypedModuleConstants
-        using ResultT = ConstantsStyle;
+        using ResultT = ConstantsPaint;
 
         struct Input {
           std::optional<double> strokeWidth;
@@ -120,18 +120,18 @@ namespace JS {
 
         /** Initialize with a set of values */
         Builder(const Input i);
-        /** Initialize with an existing ConstantsStyle */
-        Builder(ConstantsStyle i);
+        /** Initialize with an existing ConstantsPaint */
+        Builder(ConstantsPaint i);
         /** Builds the object. Generally used only by the infrastructure. */
         NSDictionary *buildUnsafeRawValue() const { return _factory(); };
       private:
         NSDictionary *(^_factory)(void);
       };
 
-      static ConstantsStyle fromUnsafeRawValue(NSDictionary *const v) { return {v}; }
+      static ConstantsPaint fromUnsafeRawValue(NSDictionary *const v) { return {v}; }
       NSDictionary *unsafeRawValue() const { return _v; }
     private:
-      ConstantsStyle(NSDictionary *const v) : _v(v) {}
+      ConstantsPaint(NSDictionary *const v) : _v(v) {}
       NSDictionary *_v;
     };
   }
@@ -176,7 +176,7 @@ namespace JS {
         using ResultT = Constants;
 
         struct Input {
-          std::optional<JS::NativeLayerPathColorRamp::ConstantsStyle::Builder> style;
+          std::optional<JS::NativeLayerPathColorRamp::ConstantsPaint::Builder> paint;
           std::optional<JS::NativeLayerPathColorRamp::ConstantsResponseInclude::Builder> responseInclude;
           std::optional<double> gestureScreenDistance;
           std::optional<double> simplificationTolerance;
@@ -233,92 +233,92 @@ namespace facebook::react {
     NativeLayerPathColorRampSpecJSI(const ObjCTurboModule::InitParams &params);
   };
 } // namespace facebook::react
-inline std::optional<double> JS::NativeLayerPathColorRamp::GeometryStyle::strokeWidth() const
+inline std::optional<double> JS::NativeLayerPathColorRamp::PathPaint::strokeWidth() const
 {
   id const p = _v[@"strokeWidth"];
   return RCTBridgingToOptionalDouble(p);
 }
-inline NSString *JS::NativeLayerPathColorRamp::GeometryStyle::strokeColor() const
+inline NSString *JS::NativeLayerPathColorRamp::PathPaint::strokeColor() const
 {
   id const p = _v[@"strokeColor"];
   return RCTBridgingToOptionalString(p);
 }
-inline NSString *JS::NativeLayerPathColorRamp::GeometryStyle::fillColor() const
+inline NSString *JS::NativeLayerPathColorRamp::PathPaint::fillColor() const
 {
   id const p = _v[@"fillColor"];
   return RCTBridgingToOptionalString(p);
 }
-inline std::optional<double> JS::NativeLayerPathColorRamp::GeometryStyle::fillAlpha() const
+inline std::optional<double> JS::NativeLayerPathColorRamp::PathPaint::fillAlpha() const
 {
   id const p = _v[@"fillAlpha"];
   return RCTBridgingToOptionalDouble(p);
 }
-inline std::optional<double> JS::NativeLayerPathColorRamp::GeometryStyle::buffer() const
+inline std::optional<double> JS::NativeLayerPathColorRamp::PathPaint::buffer() const
 {
   id const p = _v[@"buffer"];
   return RCTBridgingToOptionalDouble(p);
 }
-inline std::optional<double> JS::NativeLayerPathColorRamp::GeometryStyle::scalingZoomLevel() const
+inline std::optional<double> JS::NativeLayerPathColorRamp::PathPaint::scalingZoomLevel() const
 {
   id const p = _v[@"scalingZoomLevel"];
   return RCTBridgingToOptionalDouble(p);
 }
-inline NSString *JS::NativeLayerPathColorRamp::GeometryStyle::cap() const
+inline NSString *JS::NativeLayerPathColorRamp::PathPaint::cap() const
 {
   id const p = _v[@"cap"];
   return RCTBridgingToOptionalString(p);
 }
-inline std::optional<bool> JS::NativeLayerPathColorRamp::GeometryStyle::fixed() const
+inline std::optional<bool> JS::NativeLayerPathColorRamp::PathPaint::fixed() const
 {
   id const p = _v[@"fixed"];
   return RCTBridgingToOptionalBool(p);
 }
-inline std::optional<double> JS::NativeLayerPathColorRamp::GeometryStyle::strokeIncrease() const
+inline std::optional<double> JS::NativeLayerPathColorRamp::PathPaint::strokeIncrease() const
 {
   id const p = _v[@"strokeIncrease"];
   return RCTBridgingToOptionalDouble(p);
 }
-inline std::optional<double> JS::NativeLayerPathColorRamp::GeometryStyle::blur() const
+inline std::optional<double> JS::NativeLayerPathColorRamp::PathPaint::blur() const
 {
   id const p = _v[@"blur"];
   return RCTBridgingToOptionalDouble(p);
 }
-inline std::optional<double> JS::NativeLayerPathColorRamp::GeometryStyle::stipple() const
+inline std::optional<double> JS::NativeLayerPathColorRamp::PathPaint::stipple() const
 {
   id const p = _v[@"stipple"];
   return RCTBridgingToOptionalDouble(p);
 }
-inline NSString *JS::NativeLayerPathColorRamp::GeometryStyle::stippleColor() const
+inline NSString *JS::NativeLayerPathColorRamp::PathPaint::stippleColor() const
 {
   id const p = _v[@"stippleColor"];
   return RCTBridgingToOptionalString(p);
 }
-inline std::optional<double> JS::NativeLayerPathColorRamp::GeometryStyle::stippleWidth() const
+inline std::optional<double> JS::NativeLayerPathColorRamp::PathPaint::stippleWidth() const
 {
   id const p = _v[@"stippleWidth"];
   return RCTBridgingToOptionalDouble(p);
 }
-inline std::optional<double> JS::NativeLayerPathColorRamp::GeometryStyle::dropDistance() const
+inline std::optional<double> JS::NativeLayerPathColorRamp::PathPaint::dropDistance() const
 {
   id const p = _v[@"dropDistance"];
   return RCTBridgingToOptionalDouble(p);
 }
-inline std::optional<bool> JS::NativeLayerPathColorRamp::GeometryStyle::textureRepeat() const
+inline std::optional<bool> JS::NativeLayerPathColorRamp::PathPaint::textureRepeat() const
 {
   id const p = _v[@"textureRepeat"];
   return RCTBridgingToOptionalBool(p);
 }
-inline std::optional<double> JS::NativeLayerPathColorRamp::GeometryStyle::heightOffset() const
+inline std::optional<double> JS::NativeLayerPathColorRamp::PathPaint::heightOffset() const
 {
   id const p = _v[@"heightOffset"];
   return RCTBridgingToOptionalDouble(p);
 }
-inline std::optional<bool> JS::NativeLayerPathColorRamp::GeometryStyle::randomOffset() const
+inline std::optional<bool> JS::NativeLayerPathColorRamp::PathPaint::randomOffset() const
 {
   id const p = _v[@"randomOffset"];
   return RCTBridgingToOptionalBool(p);
 }
-inline std::optional<bool> JS::NativeLayerPathColorRamp::GeometryStyle::transparent() const
+inline std::optional<bool> JS::NativeLayerPathColorRamp::PathPaint::transparent() const
 {
   id const p = _v[@"transparent"];
   return RCTBridgingToOptionalBool(p);
@@ -368,10 +368,10 @@ inline std::optional<bool> JS::NativeLayerPathColorRamp::CreateLayerParams::supp
   id const p = _v[@"supportsGestures"];
   return RCTBridgingToOptionalBool(p);
 }
-inline std::optional<JS::NativeLayerPathColorRamp::GeometryStyle> JS::NativeLayerPathColorRamp::CreateLayerParams::style() const
+inline std::optional<JS::NativeLayerPathColorRamp::PathPaint> JS::NativeLayerPathColorRamp::CreateLayerParams::paint() const
 {
-  id const p = _v[@"style"];
-  return (p == nil ? std::nullopt : std::make_optional(JS::NativeLayerPathColorRamp::GeometryStyle(p)));
+  id const p = _v[@"paint"];
+  return (p == nil ? std::nullopt : std::make_optional(JS::NativeLayerPathColorRamp::PathPaint(p)));
 }
 inline double JS::NativeLayerPathColorRamp::RemoveLayerParams::nativeNodeHandle() const
 {
@@ -383,7 +383,7 @@ inline NSString *JS::NativeLayerPathColorRamp::RemoveLayerParams::uuid() const
   id const p = _v[@"uuid"];
   return RCTBridgingToString(p);
 }
-inline JS::NativeLayerPathColorRamp::ConstantsStyle::Builder::Builder(const Input i) : _factory(^{
+inline JS::NativeLayerPathColorRamp::ConstantsPaint::Builder::Builder(const Input i) : _factory(^{
   NSMutableDictionary *d = [NSMutableDictionary new];
   auto strokeWidth = i.strokeWidth;
   d[@"strokeWidth"] = strokeWidth.has_value() ? @((double)strokeWidth.value()) : nil;
@@ -393,7 +393,7 @@ inline JS::NativeLayerPathColorRamp::ConstantsStyle::Builder::Builder(const Inpu
   d[@"cap"] = cap;
   return d;
 }) {}
-inline JS::NativeLayerPathColorRamp::ConstantsStyle::Builder::Builder(ConstantsStyle i) : _factory(^{
+inline JS::NativeLayerPathColorRamp::ConstantsPaint::Builder::Builder(ConstantsPaint i) : _factory(^{
   return i.unsafeRawValue();
 }) {}
 inline JS::NativeLayerPathColorRamp::ConstantsResponseInclude::Builder::Builder(const Input i) : _factory(^{
@@ -409,8 +409,8 @@ inline JS::NativeLayerPathColorRamp::ConstantsResponseInclude::Builder::Builder(
 }) {}
 inline JS::NativeLayerPathColorRamp::Constants::Builder::Builder(const Input i) : _factory(^{
   NSMutableDictionary *d = [NSMutableDictionary new];
-  auto style = i.style;
-  d[@"style"] = style.has_value() ? style.value().buildUnsafeRawValue() : nil;
+  auto paint = i.paint;
+  d[@"paint"] = paint.has_value() ? paint.value().buildUnsafeRawValue() : nil;
   auto responseInclude = i.responseInclude;
   d[@"responseInclude"] = responseInclude.has_value() ? responseInclude.value().buildUnsafeRawValue() : nil;
   auto gestureScreenDistance = i.gestureScreenDistance;

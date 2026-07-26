@@ -5,7 +5,7 @@ import type { Position as GeoJsonPosition } from 'geojson';
 
 /*
  * Types redeclared inline because react-native-codegen's TS parser cannot
- * follow imported types. ErrorBase and GeometryStyle mirror the canonical
+ * follow imported types. ErrorBase and PathPaint mirror the canonical
  * definitions in react-native-mapsforge-vtm (src/NativeModules/NativeLayerPath.ts
  * and src/types.ts). Keep these in sync when the core library's types change.
  *
@@ -25,8 +25,8 @@ export interface ErrorBase {
 	code?: string;
 }
 
-/** Mirrors GeometryStyle from react-native-mapsforge-vtm. Keep in sync. */
-export type GeometryStyle = {
+/** Mirrors PathPaint from react-native-mapsforge-vtm. Keep in sync. */
+export type PathPaint = {
 	strokeWidth?: Double;
 	strokeColor?: string;
 	fillColor?: string;
@@ -52,7 +52,7 @@ export type GeometryStyle = {
  * Mirrors the values in LayerPathColorRamp.java getConstants(). Keep in sync.
  */
 export interface ModuleParams {
-	style?: {
+	paint?: {
 		strokeWidth?: Double;
 		strokeColor?: string;
 		cap?: string;
@@ -80,7 +80,7 @@ interface CreateLayerParams {
 	 *  Only applies to segmentValues mode; ignored in vertexValues mode. */
 	blendRatio?: Double;
 	supportsGestures?: boolean;
-	style?: GeometryStyle;
+	paint?: PathPaint;
 }
 
 interface RemoveLayerParams {
@@ -108,7 +108,7 @@ export type LayerPathColorRampProps = {
 	/** Fraction of each segment used for color blending at borders (0-0.45, default 0.15).
 	 *  Only applies to segmentValues mode; ignored in vertexValues mode. */
 	blendRatio?: number;
-	style?: GeometryStyle;
+	paint?: PathPaint;
 	onCreate?: null | ((response: LayerPathColorRampResponse) => void);
 	onRemove?: null | ((response: ResponseBase) => void);
 	onChange?: null | ((response: LayerPathColorRampResponse) => void);

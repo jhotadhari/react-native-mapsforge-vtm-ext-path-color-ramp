@@ -188,8 +188,8 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                 entry.drawables.clear();
 
                 Style style = getStyleBuilder(
-                        Utils.rMapHasKey(params, "style")
-                                ? params.getMap("style")
+                        Utils.rMapHasKey(params, "paint")
+                                ? params.getMap("paint")
                                 : null).build();
 
                 Coordinate[] coords = entry.jtsCoordinates;
@@ -286,8 +286,8 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                 entry.drawables.clear();
 
                 Style style = getStyleBuilder(
-                        Utils.rMapHasKey(params, "style")
-                                ? params.getMap("style")
+                        Utils.rMapHasKey(params, "paint")
+                                ? params.getMap("paint")
                                 : null).build();
 
                 Coordinate[] coords = entry.jtsCoordinates;

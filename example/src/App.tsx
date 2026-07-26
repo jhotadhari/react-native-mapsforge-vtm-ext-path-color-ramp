@@ -92,10 +92,7 @@ export default function App() {
 
 	const { width, height } = useWindowDimensions();
 
-
-
   const defaultCenter = useMemo( () => coordinates[Math.floor(coordinates.length/2)].slice(0,2) as [number, number], [coordinates]);
-
 
   const [activeKey, setActiveKey] = useState<MetricKey>("slope");
 
@@ -140,7 +137,7 @@ export default function App() {
               valueMode === "vertex" ? normalizedValues : undefined
             }
             colorRampStops={colorRampStops}
-            style={{ strokeWidth: 6 }}
+            paint={paint}
           />
         )}
       </MapContainer>
@@ -183,6 +180,8 @@ export default function App() {
     </View>
   );
 }
+
+const paint = { strokeWidth: 6 };
 
 const styles = StyleSheet.create({
   container: {

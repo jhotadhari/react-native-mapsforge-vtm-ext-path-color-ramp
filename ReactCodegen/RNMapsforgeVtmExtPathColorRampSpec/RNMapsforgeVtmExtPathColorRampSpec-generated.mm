@@ -23,10 +23,10 @@
 }
 @end
 
-@implementation RCTCxxConvert (NativeLayerPathColorRamp_GeometryStyle)
-+ (RCTManagedPointer *)JS_NativeLayerPathColorRamp_GeometryStyle:(id)json
+@implementation RCTCxxConvert (NativeLayerPathColorRamp_PathPaint)
++ (RCTManagedPointer *)JS_NativeLayerPathColorRamp_PathPaint:(id)json
 {
-  return facebook::react::managedPointer<JS::NativeLayerPathColorRamp::GeometryStyle>(json);
+  return facebook::react::managedPointer<JS::NativeLayerPathColorRamp::PathPaint>(json);
 }
 @end
 @implementation RCTCxxConvert (NativeLayerPathColorRamp_CreateLayerParams)

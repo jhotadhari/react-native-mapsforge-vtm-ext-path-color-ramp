@@ -67,7 +67,7 @@ const reportNativeError = (
  *   coordinates={coords}
  *   segmentValues={normalizedSlopeValues}
  *   colorRampStops={stops}
- *   style={{ strokeWidth: 4 }}
+ *   paint={{ strokeWidth: 4 }}
  * />
  *
  * // Vertex mode (elevation)
@@ -75,7 +75,7 @@ const reportNativeError = (
  *   coordinates={coords}
  *   vertexValues={normalizedElevationValues}
  *   colorRampStops={stops}
- *   style={{ strokeWidth: 4 }}
+ *   paint={{ strokeWidth: 4 }}
  * />
  * ```
  */
@@ -85,7 +85,7 @@ const LayerPathColorRamp = ({
 	vertexValues,
 	colorRampStops,
 	blendRatio,
-	style,
+	paint,
 	onCreate,
 	onRemove,
 	onChange,
@@ -124,7 +124,7 @@ const LayerPathColorRamp = ({
 				...(vertexValues && { vertexValues }),
 				...(colorRampStops && { colorRampStops }),
 				...(blendRatio !== undefined && { blendRatio }),
-				...(style && { style }),
+				...(paint && { paint }),
 			}).then((response: LayerPathColorRampResponse) => {
 				triggerOnCreate && onCreate ? onCreate(response) : null;
 				triggerOnChange && onChange ? onChange(response) : null;
@@ -166,7 +166,7 @@ const LayerPathColorRamp = ({
 	// Recreate when construction-baked props change. The native module does not
 	// yet have an in-place update path; remove+create is the only mechanism for
 	// reflecting new coordinates, segmentValues, vertexValues, colorRampStops,
-	// or style.
+	// or paint.
 	useEffect(() => {
 		triggerRemove({ triggerOnRemove: false }).then((success) => {
 			if (success) {
@@ -182,7 +182,7 @@ const LayerPathColorRamp = ({
 		vertexValues,
 		colorRampStops,
 		blendRatio,
-		style,
+		paint,
 		triggerRemove,
 		triggerCreate,
 	]);

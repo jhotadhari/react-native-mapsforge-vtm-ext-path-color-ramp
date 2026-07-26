@@ -39,7 +39,7 @@ function MyPath({ coordinates }) {
         coordinates={coordinates}
         segmentValues={normalizedValues}
         colorRampStops={colorRampStops}
-        style={{ strokeWidth: 6 }}
+        paint={{ strokeWidth: 6 }}
       />
     </MapContainer>
   );
@@ -85,7 +85,7 @@ const { normalizedValues, colorRampStops } = usePathColorRamp({
   coordinates={coords}
   vertexValues={normalizedValues}
   colorRampStops={colorRampStops}
-  style={{ strokeWidth: 4 }}
+  paint={{ strokeWidth: 4 }}
 />
 ```
 
@@ -103,7 +103,7 @@ Place inside a `<MapContainer>`. Renders `null` — all rendering is native.
 | `vertexValues` | `number[]` | Per-vertex normalized values (0–1), length = coords.length |
 | `colorRampStops` | `string[]` | Hex colors for the 256-color GPU texture (typically from the hook) |
 | `blendRatio` | `number` | 0–0.45, default 0.15. Segment mode only |
-| `style` | `GeometryStyle` | `strokeWidth`, `strokeColor`, `cap`, etc. |
+| `paint` | `PathPaint` | `strokeWidth`, `strokeColor`, `cap`, etc. |
 | `onCreate` | `(response) => void` | Called after native layer creation |
 | `onRemove` | `(response) => void` | Called after native layer removal |
 | `onChange` | `(response) => void` | Called on create + subsequent updates |
@@ -259,7 +259,7 @@ const mid = interpolateColor('#ff0000', '#0000ff', 0.5); // '#800080'
 
 ## Style options
 
-The `style` prop accepts the same `GeometryStyle` as `react-native-mapsforge-vtm` paths:
+The `paint` prop accepts the same `PathPaint` as `react-native-mapsforge-vtm` paths:
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
