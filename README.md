@@ -291,7 +291,7 @@ between slope coloring and elevation coloring.
 
 ## Architecture
 
-See [CLAUDE.md](./CLAUDE.md) for detailed architecture documentation covering the
+See [AGENTS.md](./AGENTS.md) for detailed architecture documentation covering the
 extension model (vtm class shadowing), vertex format extension, data flow, and
 implementation status.
 

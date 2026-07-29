@@ -9,9 +9,6 @@
 .vscode/
 jsconfig.json
 
-# Claude Code local settings
-.claude/settings.local.json
-
 # Android/IJ
 #
 .classpath
