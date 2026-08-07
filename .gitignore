@@ -9,9 +9,6 @@
 .vscode/
 jsconfig.json
 
-# Claude Code local settings
-.claude/settings.local.json
-
 # Android/IJ
 #
 .classpath
@@ -53,6 +50,11 @@ src/**/*.d.ts.map
 
 # React Native Codegen
 android/generated
+
+# Android / Gradle build outputs
+android/build/
+example/android/build/
+example/android/app/build/
 
 # yalc
 .yalc/

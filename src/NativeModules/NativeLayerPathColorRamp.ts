@@ -5,8 +5,16 @@ import type { Position as GeoJsonPosition } from 'geojson';
 
 /*
  * Types redeclared inline because react-native-codegen's TS parser cannot
- * follow imported types. ErrorBase and GeometryStyle are minimal mirrors of
- * the types from react-native-mapsforge-vtm.
+ * follow imported types. ErrorBase and PathPaint mirror the canonical
+ * definitions in react-native-mapsforge-vtm (src/NativeModules/NativeLayerPath.ts
+ * and src/types.ts). Keep these in sync when the core library's types change.
+ *
+ * NOTE: Template literal types like `#${string}` are NOT supported by
+ * react-native-codegen's TS parser. All color fields use plain `string`.
+ * JS-side hooks (colorInterpolation.ts) validate hex format at runtime.
+ *
+ * TODO: Once the core library re-exports these from its public API, import
+ * them instead of maintaining local copies here.
  */
 
 type Position = ReadonlyArray<Double>;
@@ -17,19 +25,20 @@ export interface ErrorBase {
 	code?: string;
 }
 
-export type GeometryStyle = {
+/** Mirrors PathPaint from react-native-mapsforge-vtm. Keep in sync. */
+export type PathPaint = {
 	strokeWidth?: Double;
-	strokeColor?: `#${string}`;
-	fillColor?: `#${string}`;
+	strokeColor?: string;
+	fillColor?: string;
 	fillAlpha?: Double;
 	buffer?: Double;
 	scalingZoomLevel?: Int32;
-	cap?: 'SQUARE' | 'ROUND' | 'BUTT';
+	cap?: string;
 	fixed?: boolean;
 	strokeIncrease?: Double;
 	blur?: Double;
 	stipple?: Int32;
-	stippleColor?: `#${string}`;
+	stippleColor?: string;
 	stippleWidth?: Double;
 	dropDistance?: Double;
 	textureRepeat?: boolean;
@@ -38,14 +47,40 @@ export type GeometryStyle = {
 	transparent?: boolean;
 };
 
+/**
+ * Shape of the constants returned by the native module's {@code getConstants()}.
+ * Mirrors the values in LayerPathColorRamp.java getConstants(). Keep in sync.
+ */
+export interface ModuleParams {
+	paint?: {
+		strokeWidth?: Double;
+		strokeColor?: string;
+		cap?: string;
+	};
+	responseInclude?: {
+		coordinates?: Int32;
+		bounds?: Int32;
+	};
+	gestureScreenDistance?: Double;
+	simplificationTolerance?: Double;
+}
+
 interface CreateLayerParams {
 	nativeNodeHandle?: Int32;
 	positionIndex?: Int32;
 	coordinates?: ReadonlyArray<Position>;
+	fragmentUuid?: string;
+	/** Per-segment values (length = coords.length - 1). Rendered with blend zones. */
 	segmentValues?: ReadonlyArray<Double>;
+	/** Per-vertex values (length = coords.length). Rendered as full-segment gradients
+	 *  without blend zones. Takes precedence over segmentValues when both present. */
+	vertexValues?: ReadonlyArray<Double>;
 	colorRampStops?: ReadonlyArray<string>;
+	/** Fraction of each segment used for color blending at borders (0-0.45, default 0.15).
+	 *  Only applies to segmentValues mode; ignored in vertexValues mode. */
+	blendRatio?: Double;
 	supportsGestures?: boolean;
-	style?: GeometryStyle;
+	paint?: PathPaint;
 }
 
 interface RemoveLayerParams {
@@ -64,9 +99,16 @@ export interface LayerPathColorRampResponse extends ResponseBase {
 
 export type LayerPathColorRampProps = {
 	coordinates?: GeoJsonPosition[];
+	/** Per-segment values (length = coords.length - 1). Rendered with blend zones. */
 	segmentValues?: number[];
+	/** Per-vertex values (length = coords.length). Rendered as full-segment gradients
+	 *  without blend zones. Takes precedence over segmentValues when both present. */
+	vertexValues?: number[];
 	colorRampStops?: string[];
-	style?: GeometryStyle;
+	/** Fraction of each segment used for color blending at borders (0-0.45, default 0.15).
+	 *  Only applies to segmentValues mode; ignored in vertexValues mode. */
+	blendRatio?: number;
+	paint?: PathPaint;
 	onCreate?: null | ((response: LayerPathColorRampResponse) => void);
 	onRemove?: null | ((response: ResponseBase) => void);
 	onChange?: null | ((response: LayerPathColorRampResponse) => void);
@@ -74,8 +116,14 @@ export type LayerPathColorRampProps = {
 };
 
 export interface Spec extends TurboModule {
+	getConstants(): ModuleParams;
 	createLayer(params: CreateLayerParams): Promise<LayerPathColorRampResponse>;
 	removeLayer(params: RemoveLayerParams): Promise<string>;
+	// Event emission (gesture events from native → JS).
+	// The native side calls emitOnPathEvent(WritableMap) which codegen
+	// translates to the RCTDeviceEventEmitter path.
+	addListener(eventName: string): void;
+	removeListeners(count: number): void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('LayerPathColorRamp');

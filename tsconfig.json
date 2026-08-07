@@ -27,5 +27,5 @@
     "types": ["jest", "node"],
     "verbatimModuleSyntax": true
   },
-  "exclude": [".yalc", "scripts", "lib"]
+  "exclude": [".yalc", "scripts", "lib", "example"]
 }

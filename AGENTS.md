@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to OpenCode when working with code in this repository.
 
 ## What this is
 
@@ -91,10 +91,14 @@ LayerPathColorRamp (React component, renders null)
 
 The color ramp stops (array of hex strings) are sent from JS → native on `createLayer` and
 `updateCoordinates`. The native side:
-1. Parses hex strings into RGBA byte array
-2. Creates a 256×1 RGBA8 2D texture via `GLUtils.loadTexture()`
-3. Binds it to texture unit 1 before `LineBucket.Renderer.draw()`
-4. Re-uploads texture data when color ramp stops change (no geometry rebuild needed)
+1. `ColorRampVectorLayer.setColorRampStops()` builds a 256×1 RGBA8 pixel buffer on the bridge
+   thread and stores it in a static `volatile ByteBuffer` on `LineBucket.Renderer`.
+2. On the next frame, `LineBucket.Renderer.draw()` (GL thread) picks up the pending buffer,
+   creates a GL texture via `GLUtils.glGenTextures()`, and uploads it with `gl.texImage2D()`.
+3. The texture is bound to unit 1 and `u_colorRamp` is set to unit 1.
+4. On subsequent frames, `drawLineWithValues()` copies the static `sColorRampTexID` into
+   each `LineBucket.mColorRampTexID`, and `Renderer.draw()` binds it per-bucket.
+5. Re-uploads happen when color ramp stops change (no geometry rebuild needed).
 
 ### Core library extensibility hooks
 
@@ -136,6 +140,7 @@ android/
         └── com/jhotadhari/reactnative/mapsforge/vtm/ext/pathcolorramp/
             ├── ColorRampVectorLayer.java     # Custom VectorLayer subclass (Phase 3)
             ├── ColorRampPathLayerManager.java# Extends PathLayerManager (Phase 3)
+            ├── MapsforgeVtmExtPathColorRampPackage.java # Required by autolinker
             └── modules/
                 └── LayerPathColorRamp.java   # TurboModule implementation (Phase 3)
 ```
@@ -143,20 +148,7 @@ android/
 ## Implementation status
 
 The repo is scaffolded with config files, package.json, JS utilities (color ramps, slope,
-elevation, color interpolation), and TurboModule spec. See `ROADMAP.md` for the phased plan.
-
-### What's done
-- [x] Repo scaffold (bob builder, prettier, eslint, lefthook, release-kit)
-- [x] JS utilities: `usePathColorRamp`, color ramps, slope, elevation
-- [x] TurboModule spec (`NativeLayerPathColorRamp.ts`)
-- [x] React component stub (`LayerPathColorRamp.tsx`)
-
-### What remains
-- [ ] Core library extensibility hooks (Phase 1 — in react-native-mapsforge-vtm repo)
-- [ ] vtm class shadowing + GLSL shaders (Phase 2–3 — in this repo)
-- [ ] Native TurboModule implementation (Phase 3)
-- [ ] Wire up React component with `useNativeLayerLifecycle` (Phase 4)
-- [ ] Android device verification (Phase 6)
+elevation, color interpolation), and TurboModule spec.
 
 ## Key design decisions
 
@@ -180,3 +172,99 @@ elevation, color interpolation), and TurboModule spec. See `ROADMAP.md` for the 
 - **Peer:** `react-native-mapsforge-vtm >= 0.7.0` (provides vtm, MapContainer, PathLayerManager)
 - **Transitive via core:** vtm v0.28.0, vtm-jts v0.28.0, JTS v1.20.0
 - **Build:** react-native-builder-bob, release-kit, prettier, eslint, lefthook
+
+## Gotchas discovered during build & device verification
+
+### Autolinker requires `*Package.java` implementing `ReactPackage`
+
+React Native's autolinker uses a regex to detect `*Package.java` files that `implements
+ReactPackage`. TurboModule-only packages without this class are not auto-linked. The extension
+provides `MapsforgeVtmExtPathColorRampPackage.java` extending `BaseReactPackage` with an
+explicit redundant `implements ReactPackage` — redundant but necessary for the regex.
+
+### TurboModule spec bypassed for RN 0.86
+
+The codegen-generated `NativeLayerPathColorRampSpec` was not resolved by javac despite being
+in the same compilation unit (file listed, compiles clean, but symbol not found — likely a
+Gradle source-path ordering issue). `LayerPathColorRamp` extends `ReactContextBaseJavaModule
+implements TurboModule` directly instead. `getTypedExportedConstants()` was renamed to
+`getConstants()` and `@Override` was removed from `createLayer`/`removeLayer` (which are
+no longer overriding abstract spec methods).
+
+### Java-only changes don't need `yarn prepare`
+
+`yarn prepare` runs `bob build` (codegen + TypeScript). Java changes in `android/src/main/java/`
+compile directly from source — no sync step needed. The example's `settings.gradle` points to
+the source `../../android` directory, not `node_modules`.
+
+### vtm v0.28.0 API mismatches
+
+- `GLState.enableVertexArrays(int, int)` — 2 args, not 3. The shadowed LineBucket was
+  written against an older vtm where it took 3 args.
+- `GL.deleteTextures(int, IntBuffer)` / `GL.genTextures(int, IntBuffer)` — takes `IntBuffer`,
+  not `(int, int[], int)`. Some GL impls' `IntBuffer.wrap()` doesn't transfer back to the
+  backing array. Use `GLUtils.glGenTextures(int)` instead which returns `int[]` directly.
+- `GLUtils.loadTexture()` allocates `width × height` bytes internally — only correct for
+  single-byte formats like `ALPHA`. RGBA textures (4 bytes/pixel) cause `BufferOverflowException`.
+  Use direct GL calls for RGBA textures.
+
+### GL calls must happen on the GL thread
+
+Calling `glGenTextures` from the bridge thread (e.g., via `update()`) silently returns texture
+ID 0 with `GL_NO_ERROR`. The color-ramp texture upload is deferred via a static
+`volatile ByteBuffer` set from the bridge thread and consumed by `LineBucket.Renderer.draw()`
+which runs on the GL thread.
+
+### Texture ID 0 may be valid on some GL implementations
+
+OpenGL ES spec reserves name 0, but some Mali/Android GL drivers return 0 as a valid name
+from `glGenTextures`. Using `mColorRampTexID != 0` as the "texture ready" check fails on
+these devices. The extension uses a separate `mHasColorRamp` boolean flag instead.
+
+### `v.mvp.setAsUniform(s.uMVP)` NPE
+
+The shadowed `Renderer.draw()` had `v.mvp.setAsUniform(s.uMVP)` before the for-loop where
+`Shader s` is initialized (initially null). Moved inside the shader-switch block where `s`
+is guaranteed valid.
+
+### Color ramp uses `u_color * texture2D(...)` — strokeColor must be white
+
+The value fragment shader multiplies the stroke color by the ramp lookup:
+`gl_FragColor = u_color * texture2D(u_colorRamp, ...)`. Default `strokeColor` is `#ffffff`
+(white) so the ramp color shows through unchanged. Setting strokeColor to e.g., red makes
+red × rampColor = black for most ramp entries.
+
+### VERTEX_CNT[LINE] = 5 and VBO layout — NOT a bug (verified 2026-07-10)
+
+Shadowing ensures ALL LINE buckets consistently have 5 shorts/vertex:
+- `RenderBuckets` is shadowed → `VERTEX_CNT[LINE] = 5` and `getBucket(LINE)` creates the
+  shadowed `LineBucket` for ALL callers (including vtm's own `VectorLayer.drawLine()`).
+- `LineBucket` is shadowed → even the original `addLine(GeometryBuffer)` (no values)
+  writes 5 shorts/vertex with value=0.5f as the 5th short (confirmed via JAR bytecode).
+- `Renderer.draw()` always sets stride=10 for `aPos`. Original shaders skip the 5th short
+  via GL stride (standard interleaved vertex pattern). Value shaders read both `aPos`
+  (offset 0, 4 comps) and `aValue` (offset 8, 1 comp). Both use the same stride.
+- `mHasColorRamp` selects the correct shader per-bucket at draw time.
+
+Verified: vtm's `VectorLayer.drawLine()` calls `LineBucket.addLine(GeometryBuffer)` which
+resolves to the shadowed version → all LINE vertices are 5-short, no mixing possible.
+
+### `react-native-worklets` required for reanimated v4
+
+The example app uses `react-native-reanimated` >= 4.x which requires `react-native-worklets`
+as a peer dependency.
+
+### `LineDrawable` stores coordinates in reverse order `{end, start}`
+
+`LineDrawable(double[] segment, Style)` constructor takes the segment as
+`{endX, endY, startX, startY}` — the end point comes first. After JTS
+`transformLineString`, the geometry buffer has the end point as the first vertex
+and the start point as the last vertex. In `LineBucket.addLineWithValues`,
+`values[0]` maps to the first (end) vertex and `values[last]` maps to the last
+(start) vertex. The **effective gradient along the path** (start → end) is
+`values[last] → values[0]`.
+
+To produce a gradient `A → B` from start to end, pass the values array as
+`{B, A}` (reversed). This matters for directional blend zones in
+`ColorRampPathLayerManager.addSegmentDrawables()`. Pure zones (`segVal → segVal`)
+are unaffected since both values are equal.

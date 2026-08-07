@@ -1,14 +1,21 @@
 {
   "name": "react-native-mapsforge-vtm-ext-path-color-ramp",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Per-segment color-ramp path rendering extension for react-native-mapsforge-vtm. Renders paths with colors mapped from data values (slope, elevation, speed, etc.) via a 1D color-ramp texture in the OpenGL fragment shader. Android only.",
   "source": "./src/index.tsx",
-  "main": "./lib/module/index.js",
-  "types": "./lib/typescript/src/index.d.ts",
+  "main": "./lib/commonjs/index.js",
+  "module": "./lib/module/index.js",
+  "types": "./lib/typescript/module/src/index.d.ts",
   "exports": {
     ".": {
-      "types": "./lib/typescript/src/index.d.ts",
-      "default": "./lib/module/index.js"
+      "import": {
+        "types": "./lib/typescript/module/src/index.d.ts",
+        "default": "./lib/module/index.js"
+      },
+      "require": {
+        "types": "./lib/typescript/commonjs/src/index.d.ts",
+        "default": "./lib/commonjs/index.js"
+      }
     },
     "./package.json": "./package.json"
   },
@@ -17,20 +24,26 @@
     "lib",
     "android",
     "!android/build",
+    "react-native.config.js",
     "!**/__tests__",
     "!**/__fixtures__",
     "!**/__mocks__",
     "!**/.*"
   ],
   "scripts": {
+    "example": "yarn workspace react-native-mapsforge-vtm-ext-path-color-ramp-example",
     "test": "jest",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
-    "clean": "del-cli android/build lib",
+    "clean": "del-cli android/build example/android/build example/android/app/build lib",
     "prepare": "bob build",
+    "postprepare": "scripts/sync-lib-to-example.sh",
     "format": "prettier . --write",
     "release": "release-kit"
   },
+  "workspaces": [
+    "example"
+  ],
   "keywords": [
     "react-native",
     "android",
@@ -58,28 +71,32 @@
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.22.0",
     "@evilmartians/lefthook": "^2.1.9",
-    "@jhotadhari/release-kit": "^0.0.6",
+    "@jhotadhari/release-kit": "^0.0.8",
     "@react-native/eslint-config": "^0.86.0",
     "@types/geojson": "^7946.0.16",
     "@types/jest": "^29.5.5",
     "@types/react": "^19.2.17",
+    "@types/react-test-renderer": "^19.1.0",
     "del-cli": "^7.0.0",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
     "jest": "^29.7.0",
+    "keep-a-changelog": "^3.1.0",
     "prettier": "^3.8.4",
     "prettier-plugin-embed": "^0.5.1",
     "prettier-plugin-multiline-arrays": "^4.1.9",
     "react": "19.2.7",
     "react-native": "0.86.0",
     "react-native-builder-bob": "^0.43.0",
+    "react-native-mapsforge-vtm": "^0.8.0",
+    "react-test-renderer": "^19.2.7",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "react": "*",
     "react-native": ">=0.80.0",
-    "react-native-mapsforge-vtm": ">=0.7.0"
+    "react-native-mapsforge-vtm": ">=0.8.0"
   },
   "packageManager": "yarn@3.6.1",
   "react-native-builder-bob": {
@@ -89,6 +106,12 @@
       "codegen",
       [
         "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "commonjs",
         {
           "esm": true
         }
@@ -112,5 +135,8 @@
       "javaPackageName": "com.jhotadhari.reactnative.mapsforge.vtm.ext.pathcolorramp"
     },
     "includesGeneratedCode": true
+  },
+  "dependencies": {
+    "react-native-worklets": "^0.10.1"
   }
 }
