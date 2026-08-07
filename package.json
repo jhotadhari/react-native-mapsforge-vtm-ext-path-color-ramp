@@ -1,6 +1,6 @@
 {
   "name": "react-native-mapsforge-vtm-ext-path-color-ramp",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Per-segment color-ramp path rendering extension for react-native-mapsforge-vtm. Renders paths with colors mapped from data values (slope, elevation, speed, etc.) via a 1D color-ramp texture in the OpenGL fragment shader. Android only.",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
