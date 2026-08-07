@@ -8515,7 +8515,7 @@ __metadata:
     react: 19.2.7
     react-native: 0.86.0
     react-native-builder-bob: ^0.43.0
-    react-native-mapsforge-vtm: "file:.yalc/react-native-mapsforge-vtm"
+    react-native-mapsforge-vtm: ^0.8.0
     react-native-mapsforge-vtm-ext-path-color-ramp: "file:.yalc/react-native-mapsforge-vtm-ext-path-color-ramp"
     react-native-reanimated: ">=3.0.0"
     react-native-worklets: ^0.10.1
@@ -8571,25 +8571,6 @@ __metadata:
     react-native-mapsforge-vtm: ">=0.8.0"
   languageName: unknown
   linkType: soft
-
-"react-native-mapsforge-vtm@file:.yalc/react-native-mapsforge-vtm::locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample":
-  version: 0.8.0
-  resolution: "react-native-mapsforge-vtm@file:.yalc/react-native-mapsforge-vtm#.yalc/react-native-mapsforge-vtm::hash=6338b5&locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample"
-  dependencies:
-    lodash-es: ^4.17.21
-  peerDependencies:
-    react: "*"
-    react-native: ">=0.80.0"
-    react-native-reanimated: ">=3.0.0"
-    react-native-worklets: ">=0.1.0"
-  peerDependenciesMeta:
-    react-native-reanimated:
-      optional: true
-    react-native-worklets:
-      optional: true
-  checksum: 77b00b17b24f21fe7b91ce9475e8815a81488aaad360f4ac8f3bcb192dc105182c5ead772e8e0070ba7b0098e3023e5eafca8472f63a6222d51e2c79bd02a611
-  languageName: node
-  linkType: hard
 
 "react-native-mapsforge-vtm@npm:^0.8.0":
   version: 0.8.0
