@@ -1,12 +1,10 @@
 # Changelog
-
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.0.1] - 2026-08-07
-
+## [Unreleased]
 ### Added
 - `LayerPathColorRamp` React component with segment and vertex rendering modes
 - `usePathColorRamp` hook for mapping data values to colors via color ramps
@@ -19,4 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Auto-linked package via `MapsforgeVtmExtPathColorRampPackage.java`
 - Example app with slope/elevation color mode toggle
 
+## [0.0.1] - 2026-08-07
+First version
+
+[Unreleased]: https://github.com/jhotadhari/react-native-mapsforge-vtm-ext-path-color-ramp/compare/v0.0.1...HEAD
 [0.0.1]: https://github.com/jhotadhari/react-native-mapsforge-vtm-ext-path-color-ramp/releases/tag/v0.0.1
