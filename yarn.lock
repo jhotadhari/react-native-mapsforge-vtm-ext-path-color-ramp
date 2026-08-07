@@ -7147,6 +7147,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"keep-a-changelog@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "keep-a-changelog@npm:3.1.0"
+  dependencies:
+    ini: ^6.0.0
+    semver: ^7.7.4
+  bin:
+    changelog: bin.js
+  checksum: ab4ae5925c620510f3084142a1cfed2a3b416dd6b2aedcffb6dca513cef781c7fd009d2fe2b90e731783ff49faf4486059217f6de948a7488a08e76c1e7e48fd
+  languageName: node
+  linkType: hard
+
 "keyv@npm:^4.5.4":
   version: 4.5.4
   resolution: "keyv@npm:4.5.4"
@@ -8542,6 +8554,7 @@ __metadata:
     eslint-config-prettier: ^10.1.8
     eslint-plugin-prettier: ^5.5.6
     jest: ^29.7.0
+    keep-a-changelog: ^3.1.0
     prettier: ^3.8.4
     prettier-plugin-embed: ^0.5.1
     prettier-plugin-multiline-arrays: ^4.1.9
