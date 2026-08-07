@@ -21,7 +21,7 @@ Then add the extension:
 yarn add react-native-mapsforge-vtm-ext-path-color-ramp
 ```
 
-This package requires `react-native-mapsforge-vtm >= 0.7.0` as a peer dependency.
+This package requires `react-native-mapsforge-vtm >= 0.8.0` as a peer dependency.
 
 ## Quick start
 
