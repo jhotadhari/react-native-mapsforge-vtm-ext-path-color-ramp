@@ -71,7 +71,7 @@
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.22.0",
     "@evilmartians/lefthook": "^2.1.9",
-    "@jhotadhari/release-kit": "^0.0.6",
+    "@jhotadhari/release-kit": "^0.0.8",
     "@react-native/eslint-config": "^0.86.0",
     "@types/geojson": "^7946.0.16",
     "@types/jest": "^29.5.5",
