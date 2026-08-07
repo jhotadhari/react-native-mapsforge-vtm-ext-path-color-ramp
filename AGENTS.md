@@ -148,19 +148,7 @@ android/
 ## Implementation status
 
 The repo is scaffolded with config files, package.json, JS utilities (color ramps, slope,
-elevation, color interpolation), and TurboModule spec. See `ROADMAP.md` for the phased plan.
-
-### What's done
-- [x] Repo scaffold (bob builder, prettier, eslint, lefthook, release-kit)
-- [x] JS utilities: `usePathColorRamp`, color ramps, slope, elevation
-- [x] TurboModule spec (`NativeLayerPathColorRamp.ts`)
-- [x] React component stub (`LayerPathColorRamp.tsx`)
-- [x] vtm class shadowing + GLSL shaders (Phase 2–3)
-- [x] Native TurboModule implementation (Phase 3)
-- [x] React component wired to `useNativeLayerLifecycle` (Phase 4)
-- [x] `MapsforgeVtmExtPathColorRampPackage.java` for autolinker detection
-- [x] Example app builds and renders color-ramp paths on device
-- [x] Android device verification (Phase 6)
+elevation, color interpolation), and TurboModule spec.
 
 ## Key design decisions
 

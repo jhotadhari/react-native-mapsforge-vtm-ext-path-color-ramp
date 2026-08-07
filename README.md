@@ -9,12 +9,19 @@ via a 1D color-ramp texture in the OpenGL fragment shader.
 
 ## Installation
 
+First, install the core library:
+
+```sh
+yarn add react-native-mapsforge-vtm
+```
+
+Then add the extension:
+
 ```sh
 yarn add react-native-mapsforge-vtm-ext-path-color-ramp
 ```
 
-This package has `react-native-mapsforge-vtm >= 0.7.0` as a peer dependency. Make sure
-it's installed first.
+This package requires `react-native-mapsforge-vtm >= 0.7.0` as a peer dependency.
 
 ## Quick start
 
@@ -279,12 +286,23 @@ The `paint` prop accepts the same `PathPaint` as `react-native-mapsforge-vtm` pa
 
 ## Example app
 
+First, publish the core library to your local yalc store (from the `react-native-mapsforge-vtm` repo):
+
 ```sh
-# Development (with yalc-linked react-native-mapsforge-vtm):
+cd /path/to/react-native-mapsforge-vtm && yalc publish
+```
+
+Then link it into the example and run:
+
+```sh
+# From this repo's root:
 cd example && yalc link react-native-mapsforge-vtm && cd ..
 yarn install
+yarn example start   # Metro bundler (keep running in a separate terminal)
 yarn example android
 ```
+
+The extension's own `lib/` is auto-synced into the example via `yarn prepare`.
 
 The example app renders a GPS track on a bitmap tile map with a toggle to switch
 between slope coloring and elevation coloring.
@@ -294,6 +312,14 @@ between slope coloring and elevation coloring.
 See [AGENTS.md](./AGENTS.md) for detailed architecture documentation covering the
 extension model (vtm class shadowing), vertex format extension, data flow, and
 implementation status.
+
+## Apps using react-native-mapsforge-vtm-ext-path-color-ramp
+
+This library was built as part of **[straymap](https://github.com/jhotadhari/straymap)**
+and later extracted as a standalone, reusable package so anyone can pick it up
+and use it in their own projects.
+
+Another running app is the [example app](https://github.com/jhotadhari/react-native-mapsforge-vtm-ext-path-color-ramp/tree/main/example), included in this repository.
 
 ## License
 
