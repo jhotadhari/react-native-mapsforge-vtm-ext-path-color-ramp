@@ -8561,7 +8561,7 @@ __metadata:
     react: 19.2.7
     react-native: 0.86.0
     react-native-builder-bob: ^0.43.0
-    react-native-mapsforge-vtm: "file:example/node_modules/react-native-mapsforge-vtm"
+    react-native-mapsforge-vtm: ^0.8.0
     react-native-worklets: ^0.10.1
     react-test-renderer: ^19.2.7
     typescript: ^6.0.3
@@ -8573,8 +8573,8 @@ __metadata:
   linkType: soft
 
 "react-native-mapsforge-vtm@file:.yalc/react-native-mapsforge-vtm::locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample":
-  version: 0.7.0
-  resolution: "react-native-mapsforge-vtm@file:.yalc/react-native-mapsforge-vtm#.yalc/react-native-mapsforge-vtm::hash=12651b&locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample"
+  version: 0.8.0
+  resolution: "react-native-mapsforge-vtm@file:.yalc/react-native-mapsforge-vtm#.yalc/react-native-mapsforge-vtm::hash=6338b5&locator=react-native-mapsforge-vtm-ext-path-color-ramp-example%40workspace%3Aexample"
   dependencies:
     lodash-es: ^4.17.21
   peerDependencies:
@@ -8587,13 +8587,13 @@ __metadata:
       optional: true
     react-native-worklets:
       optional: true
-  checksum: 5ddac58131775c4ccc9a4464dd64bb8c64d0bcc1ccd4f0cd61d460ecd32dbfe4e9ebb33bb1ac86e10f6eb928dae9ea401a71faa001b3548d69686e950c5d9de8
+  checksum: 77b00b17b24f21fe7b91ce9475e8815a81488aaad360f4ac8f3bcb192dc105182c5ead772e8e0070ba7b0098e3023e5eafca8472f63a6222d51e2c79bd02a611
   languageName: node
   linkType: hard
 
-"react-native-mapsforge-vtm@file:example/node_modules/react-native-mapsforge-vtm::locator=react-native-mapsforge-vtm-ext-path-color-ramp%40workspace%3A.":
-  version: 0.7.0
-  resolution: "react-native-mapsforge-vtm@file:example/node_modules/react-native-mapsforge-vtm#example/node_modules/react-native-mapsforge-vtm::hash=12651b&locator=react-native-mapsforge-vtm-ext-path-color-ramp%40workspace%3A."
+"react-native-mapsforge-vtm@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "react-native-mapsforge-vtm@npm:0.8.0"
   dependencies:
     lodash-es: ^4.17.21
   peerDependencies:
@@ -8606,7 +8606,7 @@ __metadata:
       optional: true
     react-native-worklets:
       optional: true
-  checksum: 5ddac58131775c4ccc9a4464dd64bb8c64d0bcc1ccd4f0cd61d460ecd32dbfe4e9ebb33bb1ac86e10f6eb928dae9ea401a71faa001b3548d69686e950c5d9de8
+  checksum: 2d61dcca505907dca4331504896b82a199508e14e17c75b801276ee9b1246dbbe5b32ca3151031432d705370756c50517669fe75a541274f67cd22aa51bb6ce9
   languageName: node
   linkType: hard
 
