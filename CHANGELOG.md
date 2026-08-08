@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Bump `react-native-mapsforge-vtm` devDependency to `^0.8.1`. The library's
+  0.8.1 release fixes the `strip-vtm-classes.gradle` script that resolves
+  DEX duplicate-class errors when this extension's shadowed `LineBucket`/
+  `RenderBuckets` classes collide with the vtm JAR's copies. No extension
+  code changes — the fix is entirely in the library's strip script.
+
 ## [0.1.0] - 2026-08-07
 
 ### Added
