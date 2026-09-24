@@ -21,7 +21,7 @@ Then add the extension:
 yarn add react-native-mapsforge-vtm-ext-path-color-ramp
 ```
 
-This package requires `react-native-mapsforge-vtm >= 0.8.0` as a peer dependency.
+This package requires `react-native-mapsforge-vtm ^0.9.0` as a peer dependency.
 
 ## Quick start
 
@@ -286,23 +286,16 @@ The `paint` prop accepts the same `PathPaint` as `react-native-mapsforge-vtm` pa
 
 ## Example app
 
-First, publish the core library to your local yalc store (from the `react-native-mapsforge-vtm` repo):
+The example consumes the published `react-native-mapsforge-vtm@^0.9.0` and this extension via
+the workspace (`workspace:*`). No yalc setup is required for a normal build:
 
 ```sh
-cd /path/to/react-native-mapsforge-vtm && yalc publish
-```
-
-Then link it into the example and run:
-
-```sh
-# From this repo's root:
-cd example && yalc link react-native-mapsforge-vtm && cd ..
 yarn install
 yarn example start   # Metro bundler (keep running in a separate terminal)
 yarn example android
 ```
 
-The extension's own `lib/` is auto-synced into the example via `yarn prepare`.
+The extension's own `lib/` is built into the example via `yarn prepare`.
 
 The example app renders a GPS track on a bitmap tile map with a toggle to switch
 between slope coloring and elevation coloring.

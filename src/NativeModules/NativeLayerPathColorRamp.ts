@@ -67,9 +67,10 @@ export interface ModuleParams {
 
 interface CreateLayerParams {
 	nativeNodeHandle?: Int32;
-	positionIndex?: Int32;
 	coordinates?: ReadonlyArray<Position>;
 	fragmentUuid?: string;
+	/** Absolute target order (bottom → top) the fragment should land in. */
+	layerUuids?: ReadonlyArray<string>;
 	/** Per-segment values (length = coords.length - 1). Rendered with blend zones. */
 	segmentValues?: ReadonlyArray<Double>;
 	/** Per-vertex values (length = coords.length). Rendered as full-segment gradients
@@ -119,11 +120,23 @@ export interface Spec extends TurboModule {
 	getConstants(): ModuleParams;
 	createLayer(params: CreateLayerParams): Promise<LayerPathColorRampResponse>;
 	removeLayer(params: RemoveLayerParams): Promise<string>;
+	applyEntryPriorities(params: ApplyEntryPrioritiesParams): Promise<void>;
 	// Event emission (gesture events from native → JS).
 	// The native side calls emitOnPathEvent(WritableMap) which codegen
 	// translates to the RCTDeviceEventEmitter path.
 	addListener(eventName: string): void;
 	removeListeners(count: number): void;
+}
+
+export interface EntryPriorityAssignment {
+	uuid: string;
+	priority: Int32;
+}
+
+export interface ApplyEntryPrioritiesParams {
+	nativeNodeHandle: Int32;
+	fragmentUuid: string;
+	assignments: ReadonlyArray<EntryPriorityAssignment>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('LayerPathColorRamp');

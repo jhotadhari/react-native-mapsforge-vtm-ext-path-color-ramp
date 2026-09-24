@@ -41,6 +41,18 @@
   return facebook::react::managedPointer<JS::NativeLayerPathColorRamp::RemoveLayerParams>(json);
 }
 @end
+@implementation RCTCxxConvert (NativeLayerPathColorRamp_EntryPriorityAssignment)
++ (RCTManagedPointer *)JS_NativeLayerPathColorRamp_EntryPriorityAssignment:(id)json
+{
+  return facebook::react::managedPointer<JS::NativeLayerPathColorRamp::EntryPriorityAssignment>(json);
+}
+@end
+@implementation RCTCxxConvert (NativeLayerPathColorRamp_ApplyEntryPrioritiesParams)
++ (RCTManagedPointer *)JS_NativeLayerPathColorRamp_ApplyEntryPrioritiesParams:(id)json
+{
+  return facebook::react::managedPointer<JS::NativeLayerPathColorRamp::ApplyEntryPrioritiesParams>(json);
+}
+@end
 namespace facebook::react {
   
     static facebook::jsi::Value __hostFunction_NativeLayerPathColorRampSpecJSI_createLayer(facebook::jsi::Runtime& rt, TurboModule &turboModule, const facebook::jsi::Value* args, size_t count) {
@@ -49,6 +61,10 @@ namespace facebook::react {
 
     static facebook::jsi::Value __hostFunction_NativeLayerPathColorRampSpecJSI_removeLayer(facebook::jsi::Runtime& rt, TurboModule &turboModule, const facebook::jsi::Value* args, size_t count) {
       return static_cast<ObjCTurboModule&>(turboModule).invokeObjCMethod(rt, PromiseKind, "removeLayer", @selector(removeLayer:resolve:reject:), args, count);
+    }
+
+    static facebook::jsi::Value __hostFunction_NativeLayerPathColorRampSpecJSI_applyEntryPriorities(facebook::jsi::Runtime& rt, TurboModule &turboModule, const facebook::jsi::Value* args, size_t count) {
+      return static_cast<ObjCTurboModule&>(turboModule).invokeObjCMethod(rt, PromiseKind, "applyEntryPriorities", @selector(applyEntryPriorities:resolve:reject:), args, count);
     }
 
     static facebook::jsi::Value __hostFunction_NativeLayerPathColorRampSpecJSI_addListener(facebook::jsi::Runtime& rt, TurboModule &turboModule, const facebook::jsi::Value* args, size_t count) {
@@ -71,6 +87,9 @@ namespace facebook::react {
         
         methodMap_["removeLayer"] = MethodMetadata {1, __hostFunction_NativeLayerPathColorRampSpecJSI_removeLayer};
         setMethodArgConversionSelector(@"removeLayer", 0, @"JS_NativeLayerPathColorRamp_RemoveLayerParams:");
+        
+        methodMap_["applyEntryPriorities"] = MethodMetadata {1, __hostFunction_NativeLayerPathColorRampSpecJSI_applyEntryPriorities};
+        setMethodArgConversionSelector(@"applyEntryPriorities", 0, @"JS_NativeLayerPathColorRamp_ApplyEntryPrioritiesParams:");
         
         methodMap_["addListener"] = MethodMetadata {1, __hostFunction_NativeLayerPathColorRampSpecJSI_addListener};
         

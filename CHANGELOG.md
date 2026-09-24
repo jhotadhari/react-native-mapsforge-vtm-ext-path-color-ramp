@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Scene-based layer ordering** — migrated from `useLayerOrder` to the parent's scene-model
+  hooks (`useLayerAnchor({ kind: 'layer', layerType: 'path_colorramp', shared: true })` +
+  `useSceneUuidBinding`). The component now renders a `VtmAnchorView`; z-order is derived from
+  React tree order.
+- **`react-native-mapsforge-vtm` peer dependency bumped to `^0.9.0`** (breaking — the scene-model
+  release).
+
+### Added
+
+- **`applyEntryPriorities` bridge** — `LayerPathColorRamp` registers a
+  `registerEntryPriorityHandler('path_colorramp', …)` and the native
+  `ColorRampPathLayerManager` overrides `applyEntryPriorities`, preserving the blend/pure
+  sub-drawable priority scheme under the scene's sparse priorities.
+
+### Removed
+
+- **Create-time `positionIndex` / `fragmentUuid` params** — ordering is now applied by the
+  parent's scene (`reorderLayers`); the fragment uuid is the scene-authoritative `run:<anchor>`
+  key.
+- **`src/types/react-native-mapsforge-vtm.d.ts`** — deleted; types are imported from the parent.
+
 ## [0.1.1] - 2026-08-08
 
 ### Changed

@@ -23,6 +23,8 @@ import org.oscim.layers.Layer;
 import org.oscim.layers.vector.geometries.LineDrawable;
 import org.oscim.layers.vector.geometries.Style;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -47,6 +49,15 @@ public class ColorRampPathLayerManager extends PathLayerManager {
 
     private static final Logger log = Logger.getLogger(
             ColorRampPathLayerManager.class.getName());
+
+    /**
+     * Priority offset (0 = blend zone, 1 = pure zone) per drawable, so
+     * {@link #applyEntryPriorities} can re-apply the {@code priority * 2 +
+     * offset} scheme (blend zones at {@code base}, pure zone at {@code base +
+     * 1}) after the scene assigns a new sparse entry priority.
+     */
+    private final Map<LineDrawable, Integer> drawablePriorityOffset =
+            new ConcurrentHashMap<>();
 
     // ── Factory ────────────────────────────────────────────────────────────
 
@@ -184,6 +195,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                 for (LineDrawable d : entry.drawables) {
                     crLayer.remove(d);
                     drawableToEntry.remove(d);
+                    drawablePriorityOffset.remove(d);
                 }
                 entry.drawables.clear();
 
@@ -282,6 +294,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
                 for (LineDrawable d : entry.drawables) {
                     crLayer.remove(d);
                     drawableToEntry.remove(d);
+                    drawablePriorityOffset.remove(d);
                 }
                 entry.drawables.clear();
 
@@ -321,6 +334,41 @@ public class ColorRampPathLayerManager extends PathLayerManager {
     @Override
     public void remove(@NonNull String entryUuid) {
         super.remove(entryUuid);
+    }
+
+    /**
+     * Overrides the parent's flat priority assignment to preserve the
+     * colour-ramp blend/pure sub-drawable scheme. The scene assigns a sparse
+     * {@code priority} per entry; here each drawable gets {@code priority * 2}
+     * (blend zone) or {@code priority * 2 + 1} (pure zone), keeping the pure
+     * zone above its blend zones while preserving inter-entry order.
+     */
+    @Override
+    public boolean applyEntryPriorities(
+            @NonNull String fragmentUuid,
+            @NonNull ReadableArray assignments) {
+        VectorLayer layer = (VectorLayer) getSharedLayer(fragmentUuid);
+        if (layer == null) {
+            log.warning("ZOMBIE: applyEntryPriorities — no shared layer for "
+                    + fragmentUuid);
+            return false;
+        }
+        for (int i = 0; i < assignments.size(); i++) {
+            ReadableMap assignment = assignments.getMap(i);
+            String uuid = assignment.getString("uuid");
+            int priority = assignment.getInt("priority");
+            PathEntry entry = entries.get(uuid);
+            if (entry == null || !fragmentUuid.equals(entry.fragmentUuid)) {
+                continue;
+            }
+            entry.positionIndex = priority;
+            for (LineDrawable drawable : entry.drawables) {
+                int offset = drawablePriorityOffset.getOrDefault(drawable, 0);
+                drawable.setPriority(priority * 2 + offset);
+            }
+        }
+        scheduleUpdate();
+        return true;
     }
 
     // ── Shared drawable-rebuild helper ────────────────────────────────────
@@ -443,6 +491,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
             crLayer.addLineDrawableWithValues(d,
                     new float[]{endVal, startVal});
             entry.drawables.add(d);
+            drawablePriorityOffset.put(d, 0);
             return;
         }
 
@@ -465,6 +514,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
         crLayer.addLineDrawableWithValues(entryD,
                 new float[]{segVal, startVal});
         entry.drawables.add(entryD);
+        drawablePriorityOffset.put(entryD, 0);
 
         // Pure zone: mid1 → mid2.
         // Effective gradient (start→end): segVal → segVal.
@@ -474,6 +524,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
         crLayer.addLineDrawableWithValues(pureD,
                 new float[]{segVal, segVal});
         entry.drawables.add(pureD);
+        drawablePriorityOffset.put(pureD, 1);
 
         // Exit blend zone: mid2 → c1.
         // Effective gradient (start→end): segVal → endVal.
@@ -483,6 +534,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
         crLayer.addLineDrawableWithValues(exitD,
                 new float[]{endVal, segVal});
         entry.drawables.add(exitD);
+        drawablePriorityOffset.put(exitD, 0);
     }
 
     // ── Vertex-mode drawable creation (no blend zones) ─────────────────────
@@ -533,6 +585,7 @@ public class ColorRampPathLayerManager extends PathLayerManager {
             crLayer.addLineDrawableWithValues(d,
                     new float[]{vEnd, vStart});
             entry.drawables.add(d);
+            drawablePriorityOffset.put(d, 0);
         }
     }
 
