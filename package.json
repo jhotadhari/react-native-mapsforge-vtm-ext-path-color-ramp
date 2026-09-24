@@ -1,6 +1,6 @@
 {
   "name": "react-native-mapsforge-vtm-ext-path-color-ramp",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Per-segment color-ramp path rendering extension for react-native-mapsforge-vtm. Renders paths with colors mapped from data values (slope, elevation, speed, etc.) via a 1D color-ramp texture in the OpenGL fragment shader. Android only.",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
@@ -71,7 +71,7 @@
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.22.0",
     "@evilmartians/lefthook": "^2.1.9",
-    "@jhotadhari/release-kit": "^0.0.8",
+    "@jhotadhari/release-kit": "^0.0.9",
     "@react-native/eslint-config": "^0.86.0",
     "@types/geojson": "^7946.0.16",
     "@types/jest": "^29.5.5",
@@ -89,14 +89,14 @@
     "react": "19.2.7",
     "react-native": "0.86.0",
     "react-native-builder-bob": "^0.43.0",
-    "react-native-mapsforge-vtm": "^0.8.1",
+    "react-native-mapsforge-vtm": "^0.9.0",
     "react-test-renderer": "^19.2.7",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "react": "*",
     "react-native": ">=0.80.0",
-    "react-native-mapsforge-vtm": ">=0.8.0"
+    "react-native-mapsforge-vtm": "^0.9.0"
   },
   "packageManager": "yarn@3.6.1",
   "react-native-builder-bob": {

@@ -68,9 +68,9 @@ namespace JS {
   namespace NativeLayerPathColorRamp {
     struct CreateLayerParams {
       std::optional<double> nativeNodeHandle() const;
-      std::optional<double> positionIndex() const;
       std::optional<facebook::react::LazyVector<facebook::react::LazyVector<double>>> coordinates() const;
       NSString *fragmentUuid() const;
+      std::optional<facebook::react::LazyVector<NSString *>> layerUuids() const;
       std::optional<facebook::react::LazyVector<double>> segmentValues() const;
       std::optional<facebook::react::LazyVector<double>> vertexValues() const;
       std::optional<facebook::react::LazyVector<NSString *>> colorRampStops() const;
@@ -103,6 +103,39 @@ namespace JS {
 
 @interface RCTCxxConvert (NativeLayerPathColorRamp_RemoveLayerParams)
 + (RCTManagedPointer *)JS_NativeLayerPathColorRamp_RemoveLayerParams:(id)json;
+@end
+namespace JS {
+  namespace NativeLayerPathColorRamp {
+    struct EntryPriorityAssignment {
+      NSString *uuid() const;
+      double priority() const;
+
+      EntryPriorityAssignment(NSDictionary *const v) : _v(v) {}
+    private:
+      NSDictionary *_v;
+    };
+  }
+}
+
+@interface RCTCxxConvert (NativeLayerPathColorRamp_EntryPriorityAssignment)
++ (RCTManagedPointer *)JS_NativeLayerPathColorRamp_EntryPriorityAssignment:(id)json;
+@end
+namespace JS {
+  namespace NativeLayerPathColorRamp {
+    struct ApplyEntryPrioritiesParams {
+      double nativeNodeHandle() const;
+      NSString *fragmentUuid() const;
+      facebook::react::LazyVector<JS::NativeLayerPathColorRamp::EntryPriorityAssignment> assignments() const;
+
+      ApplyEntryPrioritiesParams(NSDictionary *const v) : _v(v) {}
+    private:
+      NSDictionary *_v;
+    };
+  }
+}
+
+@interface RCTCxxConvert (NativeLayerPathColorRamp_ApplyEntryPrioritiesParams)
++ (RCTManagedPointer *)JS_NativeLayerPathColorRamp_ApplyEntryPrioritiesParams:(id)json;
 @end
 namespace JS {
   namespace NativeLayerPathColorRamp {
@@ -208,6 +241,9 @@ namespace JS {
 - (void)removeLayer:(JS::NativeLayerPathColorRamp::RemoveLayerParams &)params
             resolve:(RCTPromiseResolveBlock)resolve
              reject:(RCTPromiseRejectBlock)reject;
+- (void)applyEntryPriorities:(JS::NativeLayerPathColorRamp::ApplyEntryPrioritiesParams &)params
+                     resolve:(RCTPromiseResolveBlock)resolve
+                      reject:(RCTPromiseRejectBlock)reject;
 - (void)addListener:(NSString *)eventName;
 - (void)removeListeners:(double)count;
 - (facebook::react::ModuleConstants<JS::NativeLayerPathColorRamp::Constants>)constantsToExport;
@@ -328,11 +364,6 @@ inline std::optional<double> JS::NativeLayerPathColorRamp::CreateLayerParams::na
   id const p = _v[@"nativeNodeHandle"];
   return RCTBridgingToOptionalDouble(p);
 }
-inline std::optional<double> JS::NativeLayerPathColorRamp::CreateLayerParams::positionIndex() const
-{
-  id const p = _v[@"positionIndex"];
-  return RCTBridgingToOptionalDouble(p);
-}
 inline std::optional<facebook::react::LazyVector<facebook::react::LazyVector<double>>> JS::NativeLayerPathColorRamp::CreateLayerParams::coordinates() const
 {
   id const p = _v[@"coordinates"];
@@ -342,6 +373,11 @@ inline NSString *JS::NativeLayerPathColorRamp::CreateLayerParams::fragmentUuid()
 {
   id const p = _v[@"fragmentUuid"];
   return RCTBridgingToOptionalString(p);
+}
+inline std::optional<facebook::react::LazyVector<NSString *>> JS::NativeLayerPathColorRamp::CreateLayerParams::layerUuids() const
+{
+  id const p = _v[@"layerUuids"];
+  return RCTBridgingToOptionalVec(p, ^NSString *(id itemValue_0) { return RCTBridgingToString(itemValue_0); });
 }
 inline std::optional<facebook::react::LazyVector<double>> JS::NativeLayerPathColorRamp::CreateLayerParams::segmentValues() const
 {
@@ -382,6 +418,31 @@ inline NSString *JS::NativeLayerPathColorRamp::RemoveLayerParams::uuid() const
 {
   id const p = _v[@"uuid"];
   return RCTBridgingToString(p);
+}
+inline NSString *JS::NativeLayerPathColorRamp::EntryPriorityAssignment::uuid() const
+{
+  id const p = _v[@"uuid"];
+  return RCTBridgingToString(p);
+}
+inline double JS::NativeLayerPathColorRamp::EntryPriorityAssignment::priority() const
+{
+  id const p = _v[@"priority"];
+  return RCTBridgingToDouble(p);
+}
+inline double JS::NativeLayerPathColorRamp::ApplyEntryPrioritiesParams::nativeNodeHandle() const
+{
+  id const p = _v[@"nativeNodeHandle"];
+  return RCTBridgingToDouble(p);
+}
+inline NSString *JS::NativeLayerPathColorRamp::ApplyEntryPrioritiesParams::fragmentUuid() const
+{
+  id const p = _v[@"fragmentUuid"];
+  return RCTBridgingToString(p);
+}
+inline facebook::react::LazyVector<JS::NativeLayerPathColorRamp::EntryPriorityAssignment> JS::NativeLayerPathColorRamp::ApplyEntryPrioritiesParams::assignments() const
+{
+  id const p = _v[@"assignments"];
+  return RCTBridgingToVec(p, ^JS::NativeLayerPathColorRamp::EntryPriorityAssignment(id itemValue_0) { return JS::NativeLayerPathColorRamp::EntryPriorityAssignment(itemValue_0); });
 }
 inline JS::NativeLayerPathColorRamp::ConstantsPaint::Builder::Builder(const Input i) : _factory(^{
   NSMutableDictionary *d = [NSMutableDictionary new];

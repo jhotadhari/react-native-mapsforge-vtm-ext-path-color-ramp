@@ -269,6 +269,39 @@ public class LayerPathColorRamp extends ReactContextBaseJavaModule implements Tu
         }
     }
 
+    // ── applyEntryPriorities ────────────────────────────────────────────
+
+    @ReactMethod
+    public void applyEntryPriorities(ReadableMap params, Promise promise) {
+        try {
+            if (!Utils.rMapHasKey(params, "nativeNodeHandle")
+                    || !Utils.rMapHasKey(params, "fragmentUuid")) {
+                Utils.promiseReject(promise,
+                        "Undefined nativeNodeHandle or fragmentUuid");
+                return;
+            }
+            int nativeNodeHandle = params.getInt("nativeNodeHandle");
+            String fragmentUuid = params.getString("fragmentUuid");
+            ReadableArray assignments = Utils.rMapHasKey(params, "assignments")
+                    ? params.getArray("assignments")
+                    : null;
+
+            ColorRampPathLayerManager manager =
+                    ColorRampPathLayerManager.getInstance(nativeNodeHandle);
+            if (manager != null && assignments != null) {
+                if (!manager.applyEntryPriorities(fragmentUuid, assignments)) {
+                    Utils.promiseReject(promise,
+                            "Fragment not found: " + fragmentUuid);
+                    return;
+                }
+            }
+            promise.resolve(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Utils.promiseReject(promise, e.getMessage());
+        }
+    }
+
     @ReactMethod
     @DoNotStrip
     public void addListener(String eventName) {

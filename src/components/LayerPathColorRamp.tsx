@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useContext, useEffect, useRef } from 'react';
+import { useContext, useEffect } from 'react';
 
 /**
  * Internal dependencies
@@ -18,8 +18,12 @@ import LayerPathColorRampModule, {
  */
 import {
 	MapHandleContext,
-	useLayerOrder,
+	useLayerAnchor,
+	useSceneFragmentUuid,
+	useSceneUuidBinding,
 	useNativeLayerLifecycle,
+	registerEntryPriorityHandler,
+	runUuidFor,
 } from 'react-native-mapsforge-vtm';
 
 const moduleDefaults = LayerPathColorRampModule.getConstants();
@@ -35,6 +39,12 @@ const reportNativeError = (
 	console.error('LayerPathColorRamp ERROR', err?.userInfo?.errorMsg);
 	onError ? onError(err) : null;
 };
+
+// Bridge the scene's applyEntryPriorities for this layer type to the native
+// module — same contract the core registers for 'path'/'shape'/'marker'.
+registerEntryPriorityHandler('path_colorramp', (params) =>
+	LayerPathColorRampModule.applyEntryPriorities(params)
+);
 
 /**
  * A path layer that renders per-segment colors via a 1D color-ramp texture
@@ -91,20 +101,25 @@ const LayerPathColorRamp = ({
 	onChange,
 	onError,
 }: LayerPathColorRampProps) => {
-	// Get the MapHandleContext value which contains nativeNodeHandle + layer registry.
-	const { nativeNodeHandle } = useContext(MapHandleContext);
+	// Get the MapHandleContext value which contains nativeNodeHandle + scene.
+	const { nativeNodeHandle, scene } = useContext(MapHandleContext);
 
 	const hasCoordinates = !!coordinates && coordinates.length > 0;
 
-	// positionIndex is computed by useLayerOrder during render (after the uuid
-	// declaration below) but must be available inside the create callback (which
-	// is defined here, before the declaration). A ref bridges the gap: it's set
-	// during render, then read when the async create callback fires.
-	const positionIndexRef = useRef<number>(-1);
-	const fragmentUuidRef = useRef<string | undefined>(undefined);
+	// Standalone shared layer: this component contributes an anchor and belongs
+	// to an implicit type-run fragment (layerType 'path_colorramp'). The fragment
+	// uuid is scene-authoritative (keyed by the run's first member).
+	const { uid: anchorUid, element: anchorElement } = useLayerAnchor({
+		kind: 'layer',
+		layerType: 'path_colorramp',
+		shared: true,
+	});
+
+	const runFragmentUuid = useSceneFragmentUuid(anchorUid);
 
 	const { uuid, triggerCreate, triggerRemove } = useNativeLayerLifecycle({
-		enabled: !!nativeNodeHandle && hasCoordinates,
+		enabled:
+			!!nativeNodeHandle && hasCoordinates && runFragmentUuid !== null,
 		create: ({ triggerOnCreate, triggerOnChange }) => {
 			if (!nativeNodeHandle || !coordinates) {
 				return Promise.reject<string>({
@@ -113,12 +128,19 @@ const LayerPathColorRamp = ({
 					},
 				} as ErrorBase);
 			}
+			const fragmentUuid =
+				runFragmentUuid ??
+				scene.plan().runKeysByAnchor.get(anchorUid) ??
+				runUuidFor(anchorUid);
+			// The absolute target order: the plan as if this entry were
+			// already resolved — the fragment appears at its tree position.
+			const layerUuids = scene
+				.planWithResolved(anchorUid)
+				.layers.map((l) => l.uuid);
 			return LayerPathColorRampModule.createLayer({
 				nativeNodeHandle,
-				positionIndex: positionIndexRef.current,
-				...(fragmentUuidRef.current && {
-					fragmentUuid: fragmentUuidRef.current,
-				}),
+				fragmentUuid,
+				layerUuids,
 				coordinates,
 				...(segmentValues && { segmentValues }),
 				...(vertexValues && { vertexValues }),
@@ -156,12 +178,9 @@ const LayerPathColorRamp = ({
 		onError,
 	});
 
-	const { positionIndex, fragmentUuid } = useLayerOrder(
-		uuid,
-		'path_colorramp'
-	);
-	positionIndexRef.current = positionIndex;
-	fragmentUuidRef.current = fragmentUuid;
+	// Bind the resolved entry uuid to the anchor uid — the type-run fragment
+	// exists once one member resolved.
+	useSceneUuidBinding(anchorUid, uuid);
 
 	// Recreate when construction-baked props change. The native module does not
 	// yet have an in-place update path; remove+create is the only mechanism for
@@ -187,7 +206,7 @@ const LayerPathColorRamp = ({
 		triggerCreate,
 	]);
 
-	return null;
+	return anchorElement;
 };
 
 LayerPathColorRamp.defaults = moduleDefaults;

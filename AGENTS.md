@@ -52,7 +52,7 @@ The extension extends `react-native-mapsforge-vtm` in two dimensions:
 
 vtm is LGPL-licensed. Only 2 Java classes + 2 GLSL files need modification — far less than
 maintaining a full fork. The modified classes include an LGPL attribution comment. The extension's
-`build.gradle` pins vtm v0.28.0; if vtm internals change in a future version, these 4 files need
+`build.gradle` pins vtm v0.29.0; if vtm internals change in a future version, these 4 files need
 review.
 
 ### Vertex format extension
@@ -72,16 +72,19 @@ OpenGL ES 2.0, so a 2D texture with height=1 is the standard workaround:
 ### JS → Native data flow
 
 ```
-LayerPathColorRamp (React component, renders null)
+LayerPathColorRamp (React component, renders a VtmAnchorView)
   └─ usePathColorRamp() hook
        ├─ metric calculator (slope.ts, elevation.ts, or custom)
        ├─ value normalization (0–1)
        └─ color ramp → segment colors via colorInterpolation.ts
+  └─ useLayerAnchor({ kind: 'layer', layerType: 'path_colorramp', shared: true })
+       + useSceneUuidBinding → scene-based z-ordering (React tree order)
   └─ LayerPathColorRampModule.createLayer({
-       coordinates, segmentValues, colorRampStops, style
+       coordinates, segmentValues, colorRampStops, style, fragmentUuid, layerUuids
      })
        └─ LayerPathColorRamp.java (TurboModule)
             └─ ColorRampPathLayerManager.java (extends PathLayerManager)
+                 ├─ applyEntryPriorities (registered via registerEntryPriorityHandler)
                  └─ ColorRampVectorLayer.java (extends VectorLayer)
                       └─ Shadowed LineBucket (adds a_value to vertices)
                            └─ Custom GLSL shader (texture2D lookup)
@@ -102,21 +105,23 @@ The color ramp stops (array of hex strings) are sent from JS → native on `crea
 
 ### Core library extensibility hooks
 
-This extension depends on minor API openings in `react-native-mapsforge-vtm` (planned, not yet
-implemented):
+This extension depends on API openings in `react-native-mapsforge-vtm` (available since the
+0.9.0 scene-model release):
 
-- `PathLayerManager.drawSegments()` and `getStyleBuilderFromMap()`: changed from `private`/`private static` to `protected`
-- `LayerPath.java`: added `protected createPathLayerManager()` factory method
+- `PathLayerManager.drawSegments()` and `getStyleBuilder()`: changed from `private` to `protected`
+- `LayerPath.java`: `protected createPathLayerManager()` factory method
+- Scene-model extension hooks: `useLayerAnchor`, `useSceneUuidBinding`,
+  `useSceneFragmentUuid`, `registerEntryPriorityHandler` (all exported from the parent)
 
-These are ~10 lines of visibility changes in the core library. Without them, the extension
-would need to duplicate more code.
+The extension registers an entry-priority handler for `path_colorramp` so the scene's
+`applyEntryPriorities` drives the per-fragment drawable order via `ColorRampPathLayerManager`.
 
 ## Repo structure
 
 ```
 src/
 ├── index.tsx                               # Public exports
-├── components/LayerPathColorRamp.tsx         # React component (stub — Phase 4)
+├── components/LayerPathColorRamp.tsx         # React component
 ├── NativeModules/NativeLayerPathColorRamp.ts # TurboModule spec (codegen)
 ├── hooks/usePathColorRamp.ts                # Value → color mapping hook
 ├── colors/
@@ -135,7 +140,7 @@ android/
     │   └── line_aa_proj_value.glsl          # Modified projected variant
     └── java/
         ├── org/oscim/renderer/bucket/
-        │   ├── LineBucket.java              # SHADOWED from vtm v0.28.0 (LGPL) (Phase 3)
+        │   ├── LineBucket.java              # SHADOWED from vtm v0.29.0 (LGPL) (Phase 3)
         │   └── RenderBuckets.java           # SHADOWED: VERTEX_CNT[LINE] = 5
         └── com/jhotadhari/reactnative/mapsforge/vtm/ext/pathcolorramp/
             ├── ColorRampVectorLayer.java     # Custom VectorLayer subclass (Phase 3)
@@ -169,8 +174,8 @@ elevation, color interpolation), and TurboModule spec.
 
 ## Dependencies
 
-- **Peer:** `react-native-mapsforge-vtm >= 0.7.0` (provides vtm, MapContainer, PathLayerManager)
-- **Transitive via core:** vtm v0.28.0, vtm-jts v0.28.0, JTS v1.20.0
+- **Peer:** `react-native-mapsforge-vtm ^0.9.0` (provides vtm, MapContainer, PathLayerManager, scene-model hooks)
+- **Transitive via core:** vtm v0.29.0, vtm-jts v0.29.0, JTS v1.20.0
 - **Build:** react-native-builder-bob, release-kit, prettier, eslint, lefthook
 
 ## Gotchas discovered during build & device verification
@@ -197,7 +202,7 @@ no longer overriding abstract spec methods).
 compile directly from source — no sync step needed. The example's `settings.gradle` points to
 the source `../../android` directory, not `node_modules`.
 
-### vtm v0.28.0 API mismatches
+### vtm v0.29.0 API mismatches
 
 - `GLState.enableVertexArrays(int, int)` — 2 args, not 3. The shadowed LineBucket was
   written against an older vtm where it took 3 args.

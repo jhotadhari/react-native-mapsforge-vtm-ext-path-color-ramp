@@ -15,14 +15,67 @@
 namespace facebook::react {
 
 
+#pragma mark - NativeLayerPathColorRampApplyEntryPrioritiesParams
+
+template <typename P0, typename P1, typename P2>
+struct NativeLayerPathColorRampApplyEntryPrioritiesParams {
+  P0 nativeNodeHandle{};
+  P1 fragmentUuid{};
+  P2 assignments;
+  bool operator==(const NativeLayerPathColorRampApplyEntryPrioritiesParams &other) const {
+    return nativeNodeHandle == other.nativeNodeHandle && fragmentUuid == other.fragmentUuid && assignments == other.assignments;
+  }
+};
+
+template <typename T>
+struct NativeLayerPathColorRampApplyEntryPrioritiesParamsBridging {
+  static T types;
+
+  static T fromJs(
+      jsi::Runtime &rt,
+      const jsi::Object &value,
+      const std::shared_ptr<CallInvoker> &jsInvoker) {
+    T result{
+      bridging::fromJs<decltype(types.nativeNodeHandle)>(rt, value.getProperty(rt, "nativeNodeHandle"), jsInvoker),
+      bridging::fromJs<decltype(types.fragmentUuid)>(rt, value.getProperty(rt, "fragmentUuid"), jsInvoker),
+      bridging::fromJs<decltype(types.assignments)>(rt, value.getProperty(rt, "assignments"), jsInvoker)};
+    return result;
+  }
+
+#ifdef DEBUG
+  static int nativeNodeHandleToJs(jsi::Runtime &rt, decltype(types.nativeNodeHandle) value) {
+    return bridging::toJs(rt, value);
+  }
+  static jsi::String fragmentUuidToJs(jsi::Runtime &rt, decltype(types.fragmentUuid) value) {
+    return bridging::toJs(rt, value);
+  }
+  static jsi::Array assignmentsToJs(jsi::Runtime &rt, decltype(types.assignments) value) {
+    return bridging::toJs(rt, value);
+  }
+#endif
+
+  static jsi::Object toJs(
+      jsi::Runtime &rt,
+      const T &value,
+      const std::shared_ptr<CallInvoker> &jsInvoker) {
+    auto result = facebook::jsi::Object(rt);
+    result.setProperty(rt, "nativeNodeHandle", bridging::toJs(rt, value.nativeNodeHandle, jsInvoker));
+    result.setProperty(rt, "fragmentUuid", bridging::toJs(rt, value.fragmentUuid, jsInvoker));
+    result.setProperty(rt, "assignments", bridging::toJs(rt, value.assignments, jsInvoker));
+    return result;
+  }
+};
+
+
+
 #pragma mark - NativeLayerPathColorRampCreateLayerParams
 
 template <typename P0, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9>
 struct NativeLayerPathColorRampCreateLayerParams {
   P0 nativeNodeHandle{};
-  P1 positionIndex{};
-  P2 coordinates{};
-  P3 fragmentUuid{};
+  P1 coordinates{};
+  P2 fragmentUuid{};
+  P3 layerUuids{};
   P4 segmentValues{};
   P5 vertexValues{};
   P6 colorRampStops{};
@@ -30,7 +83,7 @@ struct NativeLayerPathColorRampCreateLayerParams {
   P8 supportsGestures{};
   P9 paint;
   bool operator==(const NativeLayerPathColorRampCreateLayerParams &other) const {
-    return nativeNodeHandle == other.nativeNodeHandle && positionIndex == other.positionIndex && coordinates == other.coordinates && fragmentUuid == other.fragmentUuid && segmentValues == other.segmentValues && vertexValues == other.vertexValues && colorRampStops == other.colorRampStops && blendRatio == other.blendRatio && supportsGestures == other.supportsGestures && paint == other.paint;
+    return nativeNodeHandle == other.nativeNodeHandle && coordinates == other.coordinates && fragmentUuid == other.fragmentUuid && layerUuids == other.layerUuids && segmentValues == other.segmentValues && vertexValues == other.vertexValues && colorRampStops == other.colorRampStops && blendRatio == other.blendRatio && supportsGestures == other.supportsGestures && paint == other.paint;
   }
 };
 
@@ -44,9 +97,9 @@ struct NativeLayerPathColorRampCreateLayerParamsBridging {
       const std::shared_ptr<CallInvoker> &jsInvoker) {
     T result{
       bridging::fromJs<decltype(types.nativeNodeHandle)>(rt, value.getProperty(rt, "nativeNodeHandle"), jsInvoker),
-      bridging::fromJs<decltype(types.positionIndex)>(rt, value.getProperty(rt, "positionIndex"), jsInvoker),
       bridging::fromJs<decltype(types.coordinates)>(rt, value.getProperty(rt, "coordinates"), jsInvoker),
       bridging::fromJs<decltype(types.fragmentUuid)>(rt, value.getProperty(rt, "fragmentUuid"), jsInvoker),
+      bridging::fromJs<decltype(types.layerUuids)>(rt, value.getProperty(rt, "layerUuids"), jsInvoker),
       bridging::fromJs<decltype(types.segmentValues)>(rt, value.getProperty(rt, "segmentValues"), jsInvoker),
       bridging::fromJs<decltype(types.vertexValues)>(rt, value.getProperty(rt, "vertexValues"), jsInvoker),
       bridging::fromJs<decltype(types.colorRampStops)>(rt, value.getProperty(rt, "colorRampStops"), jsInvoker),
@@ -60,13 +113,13 @@ struct NativeLayerPathColorRampCreateLayerParamsBridging {
   static int nativeNodeHandleToJs(jsi::Runtime &rt, decltype(types.nativeNodeHandle) value) {
     return bridging::toJs(rt, value);
   }
-  static int positionIndexToJs(jsi::Runtime &rt, decltype(types.positionIndex) value) {
-    return bridging::toJs(rt, value);
-  }
   static jsi::Array coordinatesToJs(jsi::Runtime &rt, decltype(types.coordinates) value) {
     return bridging::toJs(rt, value);
   }
   static jsi::String fragmentUuidToJs(jsi::Runtime &rt, decltype(types.fragmentUuid) value) {
+    return bridging::toJs(rt, value);
+  }
+  static jsi::Array layerUuidsToJs(jsi::Runtime &rt, decltype(types.layerUuids) value) {
     return bridging::toJs(rt, value);
   }
   static jsi::Array segmentValuesToJs(jsi::Runtime &rt, decltype(types.segmentValues) value) {
@@ -97,14 +150,14 @@ struct NativeLayerPathColorRampCreateLayerParamsBridging {
     if (value.nativeNodeHandle) {
       result.setProperty(rt, "nativeNodeHandle", bridging::toJs(rt, value.nativeNodeHandle.value(), jsInvoker));
     }
-    if (value.positionIndex) {
-      result.setProperty(rt, "positionIndex", bridging::toJs(rt, value.positionIndex.value(), jsInvoker));
-    }
     if (value.coordinates) {
       result.setProperty(rt, "coordinates", bridging::toJs(rt, value.coordinates.value(), jsInvoker));
     }
     if (value.fragmentUuid) {
       result.setProperty(rt, "fragmentUuid", bridging::toJs(rt, value.fragmentUuid.value(), jsInvoker));
+    }
+    if (value.layerUuids) {
+      result.setProperty(rt, "layerUuids", bridging::toJs(rt, value.layerUuids.value(), jsInvoker));
     }
     if (value.segmentValues) {
       result.setProperty(rt, "segmentValues", bridging::toJs(rt, value.segmentValues.value(), jsInvoker));
@@ -124,6 +177,53 @@ struct NativeLayerPathColorRampCreateLayerParamsBridging {
     if (value.paint) {
       result.setProperty(rt, "paint", bridging::toJs(rt, value.paint.value(), jsInvoker));
     }
+    return result;
+  }
+};
+
+
+
+#pragma mark - NativeLayerPathColorRampEntryPriorityAssignment
+
+template <typename P0, typename P1>
+struct NativeLayerPathColorRampEntryPriorityAssignment {
+  P0 uuid{};
+  P1 priority;
+  bool operator==(const NativeLayerPathColorRampEntryPriorityAssignment &other) const {
+    return uuid == other.uuid && priority == other.priority;
+  }
+};
+
+template <typename T>
+struct NativeLayerPathColorRampEntryPriorityAssignmentBridging {
+  static T types;
+
+  static T fromJs(
+      jsi::Runtime &rt,
+      const jsi::Object &value,
+      const std::shared_ptr<CallInvoker> &jsInvoker) {
+    T result{
+      bridging::fromJs<decltype(types.uuid)>(rt, value.getProperty(rt, "uuid"), jsInvoker),
+      bridging::fromJs<decltype(types.priority)>(rt, value.getProperty(rt, "priority"), jsInvoker)};
+    return result;
+  }
+
+#ifdef DEBUG
+  static jsi::String uuidToJs(jsi::Runtime &rt, decltype(types.uuid) value) {
+    return bridging::toJs(rt, value);
+  }
+  static int priorityToJs(jsi::Runtime &rt, decltype(types.priority) value) {
+    return bridging::toJs(rt, value);
+  }
+#endif
+
+  static jsi::Object toJs(
+      jsi::Runtime &rt,
+      const T &value,
+      const std::shared_ptr<CallInvoker> &jsInvoker) {
+    auto result = facebook::jsi::Object(rt);
+    result.setProperty(rt, "uuid", bridging::toJs(rt, value.uuid, jsInvoker));
+    result.setProperty(rt, "priority", bridging::toJs(rt, value.priority, jsInvoker));
     return result;
   }
 };
@@ -534,6 +634,7 @@ protected:
     methodMap_["getConstants"] = MethodMetadata {.argCount = 0, .invoker = __getConstants};
     methodMap_["createLayer"] = MethodMetadata {.argCount = 1, .invoker = __createLayer};
     methodMap_["removeLayer"] = MethodMetadata {.argCount = 1, .invoker = __removeLayer};
+    methodMap_["applyEntryPriorities"] = MethodMetadata {.argCount = 1, .invoker = __applyEntryPriorities};
     methodMap_["addListener"] = MethodMetadata {.argCount = 1, .invoker = __addListener};
     methodMap_["removeListeners"] = MethodMetadata {.argCount = 1, .invoker = __removeListeners};
   }
@@ -559,6 +660,14 @@ private:
       bridging::getParameterCount(&T::removeLayer) == 2,
       "Expected removeLayer(...) to have 2 parameters");
     return bridging::callFromJs<jsi::Value>(rt, &T::removeLayer,  static_cast<NativeLayerPathColorRampCxxSpec*>(&turboModule)->jsInvoker_, static_cast<T*>(&turboModule),
+      count <= 0 ? throw jsi::JSError(rt, "Expected argument in position 0 to be passed") : args[0].asObject(rt));
+  }
+
+  static jsi::Value __applyEntryPriorities(jsi::Runtime &rt, TurboModule &turboModule, const jsi::Value* args, size_t count) {
+    static_assert(
+      bridging::getParameterCount(&T::applyEntryPriorities) == 2,
+      "Expected applyEntryPriorities(...) to have 2 parameters");
+    return bridging::callFromJs<jsi::Value>(rt, &T::applyEntryPriorities,  static_cast<NativeLayerPathColorRampCxxSpec*>(&turboModule)->jsInvoker_, static_cast<T*>(&turboModule),
       count <= 0 ? throw jsi::JSError(rt, "Expected argument in position 0 to be passed") : args[0].asObject(rt));
   }
 
