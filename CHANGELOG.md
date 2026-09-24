@@ -5,7 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.2.0] - 2026-09-24
+
+### Added
+
+- **`applyEntryPriorities` bridge** — `LayerPathColorRamp` registers a
+  `registerEntryPriorityHandler('path_colorramp', …)` and the native
+  `ColorRampPathLayerManager` overrides `applyEntryPriorities`, preserving the blend/pure
+  sub-drawable priority scheme under the scene's sparse priorities.
 
 ### Changed
 
@@ -15,13 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   React tree order.
 - **`react-native-mapsforge-vtm` peer dependency bumped to `^0.9.0`** (breaking — the scene-model
   release).
-
-### Added
-
-- **`applyEntryPriorities` bridge** — `LayerPathColorRamp` registers a
-  `registerEntryPriorityHandler('path_colorramp', …)` and the native
-  `ColorRampPathLayerManager` overrides `applyEntryPriorities`, preserving the blend/pure
-  sub-drawable priority scheme under the scene's sparse priorities.
 
 ### Removed
 
@@ -59,7 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 First version
 
-[Unreleased]: https://github.com/jhotadhari/react-native-mapsforge-vtm-ext-path-color-ramp/compare/v0.1.1...HEAD
+[0.2.0]: https://github.com/jhotadhari/react-native-mapsforge-vtm-ext-path-color-ramp/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/jhotadhari/react-native-mapsforge-vtm-ext-path-color-ramp/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/jhotadhari/react-native-mapsforge-vtm-ext-path-color-ramp/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/jhotadhari/react-native-mapsforge-vtm-ext-path-color-ramp/releases/tag/v0.0.1
