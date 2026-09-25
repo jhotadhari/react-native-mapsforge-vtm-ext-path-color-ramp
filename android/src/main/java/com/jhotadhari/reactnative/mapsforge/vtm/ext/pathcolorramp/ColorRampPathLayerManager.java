@@ -349,7 +349,12 @@ public class ColorRampPathLayerManager extends PathLayerManager {
             @NonNull ReadableArray assignments) {
         VectorLayer layer = (VectorLayer) getSharedLayer(fragmentUuid);
         if (layer == null) {
-            log.warning("ZOMBIE: applyEntryPriorities — no shared layer for "
+            // Expected transient during run re-keys: the scene applies
+            // priorities before the fragment's native layer creation has
+            // landed. The JS presenter re-sends on the next mutation, so
+            // this is below the default log threshold (mirrors the core
+            // managers' Log.d treatment).
+            log.fine("ZOMBIE: applyEntryPriorities — no shared layer for "
                     + fragmentUuid);
             return false;
         }

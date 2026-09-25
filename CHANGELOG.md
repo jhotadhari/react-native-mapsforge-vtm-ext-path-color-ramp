@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Downgraded expected-transient logs** — `ColorRampPathLayerManager.applyEntryPriorities`
+  no longer warns when a fragment's native layer isn't created yet (normal during run re-keys —
+  the JS scene presenter re-sends on the next mutation), and `LayerPathColorRamp.removeLayer`
+  logs the manager-destroyed teardown race at debug instead of warning. Both were expected
+  transients, not zombie leaks.
+
 ## [0.2.0] - 2026-09-24
 
 ### Added

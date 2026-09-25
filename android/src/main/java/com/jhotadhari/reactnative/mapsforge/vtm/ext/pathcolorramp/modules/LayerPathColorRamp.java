@@ -249,7 +249,10 @@ public class LayerPathColorRamp extends ReactContextBaseJavaModule implements Tu
             ColorRampPathLayerManager manager =
                     ColorRampPathLayerManager.getInstance(nativeNodeHandle);
             if (manager == null) {
-                Log.w(TAG,
+                // Expected teardown race: the map fragment was destroyed
+                // before a pending removeLayer arrived. The core modules
+                // resolve silently here; keep this at debug level.
+                Log.d(TAG,
                     "ZOMBIE: getInstance returned null for nativeNodeHandle="
                         + nativeNodeHandle + " uuid=" + uuid
                         + " — manager was destroyed"
