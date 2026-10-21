@@ -1,6 +1,10 @@
 import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
-import type { Double, Int32 } from 'react-native/Libraries/Types/CodegenTypes';
+import type {
+	Double,
+	EventEmitter,
+	Int32,
+} from 'react-native/Libraries/Types/CodegenTypes';
 import type { Position as GeoJsonPosition } from 'geojson';
 
 /*
@@ -81,6 +85,7 @@ interface CreateLayerParams {
 	 *  Only applies to segmentValues mode; ignored in vertexValues mode. */
 	blendRatio?: Double;
 	supportsGestures?: boolean;
+	gestureScreenDistance?: Double;
 	paint?: PathPaint;
 }
 
@@ -89,9 +94,33 @@ interface RemoveLayerParams {
 	uuid: string;
 }
 
+interface UpdateGestureScreenDistanceParams {
+	nativeNodeHandle?: Int32;
+	uuid?: string;
+	gestureScreenDistance?: Double;
+}
+
+interface UpdateSupportsGesturesParams {
+	nativeNodeHandle?: Int32;
+	uuid?: string;
+	supportsGestures?: boolean;
+}
+
 interface ResponseBase {
 	uuid: string;
 	nativeNodeHandle: Int32;
+}
+
+/**
+ * Gesture payload emitted by the shared ColorRampVectorLayer's inherited
+ * VectorLayer hit-testing. Mirrors LayerPathGestureResponse from
+ * react-native-mapsforge-vtm (redeclared — codegen can't follow imports).
+ */
+export interface LayerPathColorRampGestureResponse extends ResponseBase {
+	type: string; // 'press' | 'longPress' | 'doubleTap' | 'trigger'
+	distance: Double;
+	nearestPoint: Position;
+	eventPosition: Position;
 }
 
 export interface LayerPathColorRampResponse extends ResponseBase {
@@ -110,10 +139,17 @@ export type LayerPathColorRampProps = {
 	 *  Only applies to segmentValues mode; ignored in vertexValues mode. */
 	blendRatio?: number;
 	paint?: PathPaint;
+	gestureScreenDistance?: number;
 	onCreate?: null | ((response: LayerPathColorRampResponse) => void);
 	onRemove?: null | ((response: ResponseBase) => void);
 	onChange?: null | ((response: LayerPathColorRampResponse) => void);
 	onError?: null | ((err: ErrorBase) => void);
+	onPress?: null | ((response: LayerPathColorRampGestureResponse) => void);
+	onLongPress?:
+		null | ((response: LayerPathColorRampGestureResponse) => void);
+	onDoubleTap?:
+		null | ((response: LayerPathColorRampGestureResponse) => void);
+	onTrigger?: null | ((response: LayerPathColorRampGestureResponse) => void);
 };
 
 export interface Spec extends TurboModule {
@@ -121,9 +157,17 @@ export interface Spec extends TurboModule {
 	createLayer(params: CreateLayerParams): Promise<LayerPathColorRampResponse>;
 	removeLayer(params: RemoveLayerParams): Promise<string>;
 	applyEntryPriorities(params: ApplyEntryPrioritiesParams): Promise<void>;
-	// Event emission (gesture events from native → JS).
-	// The native side calls emitOnPathEvent(WritableMap) which codegen
-	// translates to the RCTDeviceEventEmitter path.
+	updateGestureScreenDistance(
+		params: UpdateGestureScreenDistanceParams
+	): Promise<{ uuid: string }>;
+	updateSupportsGestures(
+		params: UpdateSupportsGesturesParams
+	): Promise<{ uuid: string }>;
+	// Gesture events from native → JS. The native side calls
+	// emitOnPathEvent(WritableMap) → RCTDeviceEventEmitter with the event
+	// name matching this property.
+	onPathColorRampEvent: EventEmitter<LayerPathColorRampGestureResponse>;
+	// Required by the TurboModule spec (native implements them as no-ops).
 	addListener(eventName: string): void;
 	removeListeners(count: number): void;
 }

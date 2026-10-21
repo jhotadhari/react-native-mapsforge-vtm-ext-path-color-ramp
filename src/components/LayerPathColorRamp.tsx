@@ -1,7 +1,8 @@
 /**
  * External dependencies
  */
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useRef } from 'react';
+import type { EventSubscription } from 'react-native';
 
 /**
  * Internal dependencies
@@ -9,6 +10,7 @@ import { useContext, useEffect } from 'react';
 import LayerPathColorRampModule, {
 	type LayerPathColorRampProps,
 	type LayerPathColorRampResponse,
+	type LayerPathColorRampGestureResponse,
 	type ErrorBase,
 } from '../NativeModules/NativeLayerPathColorRamp';
 
@@ -96,13 +98,21 @@ const LayerPathColorRamp = ({
 	colorRampStops,
 	blendRatio,
 	paint,
+	gestureScreenDistance,
 	onCreate,
 	onRemove,
 	onChange,
 	onError,
+	onPress,
+	onLongPress,
+	onDoubleTap,
+	onTrigger,
 }: LayerPathColorRampProps) => {
 	// Get the MapHandleContext value which contains nativeNodeHandle + scene.
 	const { nativeNodeHandle, scene } = useContext(MapHandleContext);
+
+	// onTrigger is different, it doesn't require native gesture detection.
+	const supportsGestures = !!onPress || !!onLongPress || !!onDoubleTap;
 
 	const hasCoordinates = !!coordinates && coordinates.length > 0;
 
@@ -146,6 +156,8 @@ const LayerPathColorRamp = ({
 				...(vertexValues && { vertexValues }),
 				...(colorRampStops && { colorRampStops }),
 				...(blendRatio !== undefined && { blendRatio }),
+				supportsGestures,
+				...(gestureScreenDistance && { gestureScreenDistance }),
 				...(paint && { paint }),
 			}).then((response: LayerPathColorRampResponse) => {
 				triggerOnCreate && onCreate ? onCreate(response) : null;
@@ -185,7 +197,7 @@ const LayerPathColorRamp = ({
 	// Recreate when construction-baked props change. The native module does not
 	// yet have an in-place update path; remove+create is the only mechanism for
 	// reflecting new coordinates, segmentValues, vertexValues, colorRampStops,
-	// or paint.
+	// gestureScreenDistance, or paint.
 	useEffect(() => {
 		triggerRemove({ triggerOnRemove: false }).then((success) => {
 			if (success) {
@@ -201,9 +213,71 @@ const LayerPathColorRamp = ({
 		vertexValues,
 		colorRampStops,
 		blendRatio,
+		gestureScreenDistance,
 		paint,
 		triggerRemove,
 		triggerCreate,
+	]);
+
+	// Update gesture detection on the existing native layer when the
+	// handlers change, instead of tearing down and recreating the layer.
+	// Mirrors react-native-mapsforge-vtm's LayerPath.
+	useEffect(() => {
+		if (uuid && nativeNodeHandle) {
+			LayerPathColorRampModule.updateSupportsGestures({
+				nativeNodeHandle,
+				uuid,
+				supportsGestures,
+			}).catch((err: ErrorBase) => {
+				reportNativeError(err, onError);
+			});
+		}
+	}, [
+		uuid,
+		nativeNodeHandle,
+		supportsGestures,
+		onError,
+	]);
+
+	// Subscribe to gesture events emitted by the native shared layer.
+	// Mirrors react-native-mapsforge-vtm's useLayerPathEventSubscription
+	// (not exported from the core library, so replicated locally).
+	const pathEventSubscription = useRef<null | EventSubscription>(null);
+	useEffect(() => {
+		const removeSubscription = () => {
+			pathEventSubscription.current?.remove();
+			pathEventSubscription.current = null;
+		};
+		if (onPress || onLongPress || onDoubleTap || onTrigger) {
+			pathEventSubscription.current =
+				LayerPathColorRampModule.onPathColorRampEvent(
+					(response?: LayerPathColorRampGestureResponse) => {
+						if (response && (!uuid || response?.uuid === uuid)) {
+							response?.type === 'press' &&
+								onPress &&
+								onPress(response);
+							response?.type === 'longPress' &&
+								onLongPress &&
+								onLongPress(response);
+							response?.type === 'doubleTap' &&
+								onDoubleTap &&
+								onDoubleTap(response);
+							response?.type === 'trigger' &&
+								onTrigger &&
+								onTrigger(response);
+						}
+					}
+				);
+		} else {
+			removeSubscription();
+		}
+		return removeSubscription;
+	}, [
+		uuid,
+		onPress,
+		onLongPress,
+		onDoubleTap,
+		onTrigger,
 	]);
 
 	return anchorElement;

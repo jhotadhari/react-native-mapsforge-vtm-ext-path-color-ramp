@@ -15,7 +15,10 @@
 
 
 @implementation NativeLayerPathColorRampSpecBase
-
+- (void)emitOnPathColorRampEvent:(NSDictionary *)value
+{
+  _eventEmitterCallback("onPathColorRampEvent", value);
+}
 
 - (void)setEventEmitterCallback:(EventEmitterCallbackWrapper *)eventEmitterCallbackWrapper
 {
@@ -53,6 +56,18 @@
   return facebook::react::managedPointer<JS::NativeLayerPathColorRamp::ApplyEntryPrioritiesParams>(json);
 }
 @end
+@implementation RCTCxxConvert (NativeLayerPathColorRamp_UpdateGestureScreenDistanceParams)
++ (RCTManagedPointer *)JS_NativeLayerPathColorRamp_UpdateGestureScreenDistanceParams:(id)json
+{
+  return facebook::react::managedPointer<JS::NativeLayerPathColorRamp::UpdateGestureScreenDistanceParams>(json);
+}
+@end
+@implementation RCTCxxConvert (NativeLayerPathColorRamp_UpdateSupportsGesturesParams)
++ (RCTManagedPointer *)JS_NativeLayerPathColorRamp_UpdateSupportsGesturesParams:(id)json
+{
+  return facebook::react::managedPointer<JS::NativeLayerPathColorRamp::UpdateSupportsGesturesParams>(json);
+}
+@end
 namespace facebook::react {
   
     static facebook::jsi::Value __hostFunction_NativeLayerPathColorRampSpecJSI_createLayer(facebook::jsi::Runtime& rt, TurboModule &turboModule, const facebook::jsi::Value* args, size_t count) {
@@ -65,6 +80,14 @@ namespace facebook::react {
 
     static facebook::jsi::Value __hostFunction_NativeLayerPathColorRampSpecJSI_applyEntryPriorities(facebook::jsi::Runtime& rt, TurboModule &turboModule, const facebook::jsi::Value* args, size_t count) {
       return static_cast<ObjCTurboModule&>(turboModule).invokeObjCMethod(rt, PromiseKind, "applyEntryPriorities", @selector(applyEntryPriorities:resolve:reject:), args, count);
+    }
+
+    static facebook::jsi::Value __hostFunction_NativeLayerPathColorRampSpecJSI_updateGestureScreenDistance(facebook::jsi::Runtime& rt, TurboModule &turboModule, const facebook::jsi::Value* args, size_t count) {
+      return static_cast<ObjCTurboModule&>(turboModule).invokeObjCMethod(rt, PromiseKind, "updateGestureScreenDistance", @selector(updateGestureScreenDistance:resolve:reject:), args, count);
+    }
+
+    static facebook::jsi::Value __hostFunction_NativeLayerPathColorRampSpecJSI_updateSupportsGestures(facebook::jsi::Runtime& rt, TurboModule &turboModule, const facebook::jsi::Value* args, size_t count) {
+      return static_cast<ObjCTurboModule&>(turboModule).invokeObjCMethod(rt, PromiseKind, "updateSupportsGestures", @selector(updateSupportsGestures:resolve:reject:), args, count);
     }
 
     static facebook::jsi::Value __hostFunction_NativeLayerPathColorRampSpecJSI_addListener(facebook::jsi::Runtime& rt, TurboModule &turboModule, const facebook::jsi::Value* args, size_t count) {
@@ -91,6 +114,12 @@ namespace facebook::react {
         methodMap_["applyEntryPriorities"] = MethodMetadata {1, __hostFunction_NativeLayerPathColorRampSpecJSI_applyEntryPriorities};
         setMethodArgConversionSelector(@"applyEntryPriorities", 0, @"JS_NativeLayerPathColorRamp_ApplyEntryPrioritiesParams:");
         
+        methodMap_["updateGestureScreenDistance"] = MethodMetadata {1, __hostFunction_NativeLayerPathColorRampSpecJSI_updateGestureScreenDistance};
+        setMethodArgConversionSelector(@"updateGestureScreenDistance", 0, @"JS_NativeLayerPathColorRamp_UpdateGestureScreenDistanceParams:");
+        
+        methodMap_["updateSupportsGestures"] = MethodMetadata {1, __hostFunction_NativeLayerPathColorRampSpecJSI_updateSupportsGestures};
+        setMethodArgConversionSelector(@"updateSupportsGestures", 0, @"JS_NativeLayerPathColorRamp_UpdateSupportsGesturesParams:");
+        
         methodMap_["addListener"] = MethodMetadata {1, __hostFunction_NativeLayerPathColorRampSpecJSI_addListener};
         
         
@@ -99,5 +128,9 @@ namespace facebook::react {
         
         methodMap_["getConstants"] = MethodMetadata {0, __hostFunction_NativeLayerPathColorRampSpecJSI_getConstants};
         
+        eventEmitterMap_["onPathColorRampEvent"] = std::make_shared<AsyncEventEmitter<id>>();
+        setEventEmitterCallback([&](const std::string &name, id value) {
+          static_cast<AsyncEventEmitter<id> &>(*eventEmitterMap_[name]).emit(value);
+        });
   }
 } // namespace facebook::react
