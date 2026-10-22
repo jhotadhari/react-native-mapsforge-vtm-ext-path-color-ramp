@@ -70,7 +70,7 @@ struct NativeLayerPathColorRampApplyEntryPrioritiesParamsBridging {
 
 #pragma mark - NativeLayerPathColorRampCreateLayerParams
 
-template <typename P0, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9>
+template <typename P0, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10>
 struct NativeLayerPathColorRampCreateLayerParams {
   P0 nativeNodeHandle{};
   P1 coordinates{};
@@ -81,9 +81,10 @@ struct NativeLayerPathColorRampCreateLayerParams {
   P6 colorRampStops{};
   P7 blendRatio{};
   P8 supportsGestures{};
-  P9 paint;
+  P9 gestureScreenDistance{};
+  P10 paint;
   bool operator==(const NativeLayerPathColorRampCreateLayerParams &other) const {
-    return nativeNodeHandle == other.nativeNodeHandle && coordinates == other.coordinates && fragmentUuid == other.fragmentUuid && layerUuids == other.layerUuids && segmentValues == other.segmentValues && vertexValues == other.vertexValues && colorRampStops == other.colorRampStops && blendRatio == other.blendRatio && supportsGestures == other.supportsGestures && paint == other.paint;
+    return nativeNodeHandle == other.nativeNodeHandle && coordinates == other.coordinates && fragmentUuid == other.fragmentUuid && layerUuids == other.layerUuids && segmentValues == other.segmentValues && vertexValues == other.vertexValues && colorRampStops == other.colorRampStops && blendRatio == other.blendRatio && supportsGestures == other.supportsGestures && gestureScreenDistance == other.gestureScreenDistance && paint == other.paint;
   }
 };
 
@@ -105,6 +106,7 @@ struct NativeLayerPathColorRampCreateLayerParamsBridging {
       bridging::fromJs<decltype(types.colorRampStops)>(rt, value.getProperty(rt, "colorRampStops"), jsInvoker),
       bridging::fromJs<decltype(types.blendRatio)>(rt, value.getProperty(rt, "blendRatio"), jsInvoker),
       bridging::fromJs<decltype(types.supportsGestures)>(rt, value.getProperty(rt, "supportsGestures"), jsInvoker),
+      bridging::fromJs<decltype(types.gestureScreenDistance)>(rt, value.getProperty(rt, "gestureScreenDistance"), jsInvoker),
       bridging::fromJs<decltype(types.paint)>(rt, value.getProperty(rt, "paint"), jsInvoker)};
     return result;
   }
@@ -135,6 +137,9 @@ struct NativeLayerPathColorRampCreateLayerParamsBridging {
     return bridging::toJs(rt, value);
   }
   static bool supportsGesturesToJs(jsi::Runtime &rt, decltype(types.supportsGestures) value) {
+    return bridging::toJs(rt, value);
+  }
+  static double gestureScreenDistanceToJs(jsi::Runtime &rt, decltype(types.gestureScreenDistance) value) {
     return bridging::toJs(rt, value);
   }
   static jsi::Object paintToJs(jsi::Runtime &rt, decltype(types.paint) value) {
@@ -173,6 +178,9 @@ struct NativeLayerPathColorRampCreateLayerParamsBridging {
     }
     if (value.supportsGestures) {
       result.setProperty(rt, "supportsGestures", bridging::toJs(rt, value.supportsGestures.value(), jsInvoker));
+    }
+    if (value.gestureScreenDistance) {
+      result.setProperty(rt, "gestureScreenDistance", bridging::toJs(rt, value.gestureScreenDistance.value(), jsInvoker));
     }
     if (value.paint) {
       result.setProperty(rt, "paint", bridging::toJs(rt, value.paint.value(), jsInvoker));
@@ -224,6 +232,77 @@ struct NativeLayerPathColorRampEntryPriorityAssignmentBridging {
     auto result = facebook::jsi::Object(rt);
     result.setProperty(rt, "uuid", bridging::toJs(rt, value.uuid, jsInvoker));
     result.setProperty(rt, "priority", bridging::toJs(rt, value.priority, jsInvoker));
+    return result;
+  }
+};
+
+
+
+#pragma mark - NativeLayerPathColorRampLayerPathColorRampGestureResponse
+
+template <typename P0, typename P1, typename P2, typename P3, typename P4, typename P5>
+struct NativeLayerPathColorRampLayerPathColorRampGestureResponse {
+  P0 uuid{};
+  P1 nativeNodeHandle{};
+  P2 type{};
+  P3 distance{};
+  P4 nearestPoint{};
+  P5 eventPosition;
+  bool operator==(const NativeLayerPathColorRampLayerPathColorRampGestureResponse &other) const {
+    return uuid == other.uuid && nativeNodeHandle == other.nativeNodeHandle && type == other.type && distance == other.distance && nearestPoint == other.nearestPoint && eventPosition == other.eventPosition;
+  }
+};
+
+template <typename T>
+struct NativeLayerPathColorRampLayerPathColorRampGestureResponseBridging {
+  static T types;
+
+  static T fromJs(
+      jsi::Runtime &rt,
+      const jsi::Object &value,
+      const std::shared_ptr<CallInvoker> &jsInvoker) {
+    T result{
+      bridging::fromJs<decltype(types.uuid)>(rt, value.getProperty(rt, "uuid"), jsInvoker),
+      bridging::fromJs<decltype(types.nativeNodeHandle)>(rt, value.getProperty(rt, "nativeNodeHandle"), jsInvoker),
+      bridging::fromJs<decltype(types.type)>(rt, value.getProperty(rt, "type"), jsInvoker),
+      bridging::fromJs<decltype(types.distance)>(rt, value.getProperty(rt, "distance"), jsInvoker),
+      bridging::fromJs<decltype(types.nearestPoint)>(rt, value.getProperty(rt, "nearestPoint"), jsInvoker),
+      bridging::fromJs<decltype(types.eventPosition)>(rt, value.getProperty(rt, "eventPosition"), jsInvoker)};
+    return result;
+  }
+
+#ifdef DEBUG
+  static jsi::String uuidToJs(jsi::Runtime &rt, decltype(types.uuid) value) {
+    return bridging::toJs(rt, value);
+  }
+  static int nativeNodeHandleToJs(jsi::Runtime &rt, decltype(types.nativeNodeHandle) value) {
+    return bridging::toJs(rt, value);
+  }
+  static jsi::String typeToJs(jsi::Runtime &rt, decltype(types.type) value) {
+    return bridging::toJs(rt, value);
+  }
+  static double distanceToJs(jsi::Runtime &rt, decltype(types.distance) value) {
+    return bridging::toJs(rt, value);
+  }
+  static jsi::Array nearestPointToJs(jsi::Runtime &rt, decltype(types.nearestPoint) value) {
+    return bridging::toJs(rt, value);
+  }
+  static jsi::Array eventPositionToJs(jsi::Runtime &rt, decltype(types.eventPosition) value) {
+    return bridging::toJs(rt, value);
+  }
+#endif
+
+  static jsi::Object toJs(
+      jsi::Runtime &rt,
+      const T &value,
+      const std::shared_ptr<CallInvoker> &jsInvoker) {
+    auto result = facebook::jsi::Object(rt);
+    result.setProperty(rt, "uuid", bridging::toJs(rt, value.uuid, jsInvoker));
+    result.setProperty(rt, "nativeNodeHandle", bridging::toJs(rt, value.nativeNodeHandle, jsInvoker));
+    result.setProperty(rt, "type", bridging::toJs(rt, value.type, jsInvoker));
+    result.setProperty(rt, "distance", bridging::toJs(rt, value.distance, jsInvoker));
+    result.setProperty(rt, "nearestPoint", bridging::toJs(rt, value.nearestPoint, jsInvoker));
+    result.setProperty(rt, "eventPosition", bridging::toJs(rt, value.eventPosition, jsInvoker));
     return result;
   }
 };
@@ -624,6 +703,124 @@ struct NativeLayerPathColorRampResponseBaseBridging {
 };
 
 
+
+#pragma mark - NativeLayerPathColorRampUpdateGestureScreenDistanceParams
+
+template <typename P0, typename P1, typename P2>
+struct NativeLayerPathColorRampUpdateGestureScreenDistanceParams {
+  P0 nativeNodeHandle{};
+  P1 uuid{};
+  P2 gestureScreenDistance;
+  bool operator==(const NativeLayerPathColorRampUpdateGestureScreenDistanceParams &other) const {
+    return nativeNodeHandle == other.nativeNodeHandle && uuid == other.uuid && gestureScreenDistance == other.gestureScreenDistance;
+  }
+};
+
+template <typename T>
+struct NativeLayerPathColorRampUpdateGestureScreenDistanceParamsBridging {
+  static T types;
+
+  static T fromJs(
+      jsi::Runtime &rt,
+      const jsi::Object &value,
+      const std::shared_ptr<CallInvoker> &jsInvoker) {
+    T result{
+      bridging::fromJs<decltype(types.nativeNodeHandle)>(rt, value.getProperty(rt, "nativeNodeHandle"), jsInvoker),
+      bridging::fromJs<decltype(types.uuid)>(rt, value.getProperty(rt, "uuid"), jsInvoker),
+      bridging::fromJs<decltype(types.gestureScreenDistance)>(rt, value.getProperty(rt, "gestureScreenDistance"), jsInvoker)};
+    return result;
+  }
+
+#ifdef DEBUG
+  static int nativeNodeHandleToJs(jsi::Runtime &rt, decltype(types.nativeNodeHandle) value) {
+    return bridging::toJs(rt, value);
+  }
+  static jsi::String uuidToJs(jsi::Runtime &rt, decltype(types.uuid) value) {
+    return bridging::toJs(rt, value);
+  }
+  static double gestureScreenDistanceToJs(jsi::Runtime &rt, decltype(types.gestureScreenDistance) value) {
+    return bridging::toJs(rt, value);
+  }
+#endif
+
+  static jsi::Object toJs(
+      jsi::Runtime &rt,
+      const T &value,
+      const std::shared_ptr<CallInvoker> &jsInvoker) {
+    auto result = facebook::jsi::Object(rt);
+    if (value.nativeNodeHandle) {
+      result.setProperty(rt, "nativeNodeHandle", bridging::toJs(rt, value.nativeNodeHandle.value(), jsInvoker));
+    }
+    if (value.uuid) {
+      result.setProperty(rt, "uuid", bridging::toJs(rt, value.uuid.value(), jsInvoker));
+    }
+    if (value.gestureScreenDistance) {
+      result.setProperty(rt, "gestureScreenDistance", bridging::toJs(rt, value.gestureScreenDistance.value(), jsInvoker));
+    }
+    return result;
+  }
+};
+
+
+
+#pragma mark - NativeLayerPathColorRampUpdateSupportsGesturesParams
+
+template <typename P0, typename P1, typename P2>
+struct NativeLayerPathColorRampUpdateSupportsGesturesParams {
+  P0 nativeNodeHandle{};
+  P1 uuid{};
+  P2 supportsGestures;
+  bool operator==(const NativeLayerPathColorRampUpdateSupportsGesturesParams &other) const {
+    return nativeNodeHandle == other.nativeNodeHandle && uuid == other.uuid && supportsGestures == other.supportsGestures;
+  }
+};
+
+template <typename T>
+struct NativeLayerPathColorRampUpdateSupportsGesturesParamsBridging {
+  static T types;
+
+  static T fromJs(
+      jsi::Runtime &rt,
+      const jsi::Object &value,
+      const std::shared_ptr<CallInvoker> &jsInvoker) {
+    T result{
+      bridging::fromJs<decltype(types.nativeNodeHandle)>(rt, value.getProperty(rt, "nativeNodeHandle"), jsInvoker),
+      bridging::fromJs<decltype(types.uuid)>(rt, value.getProperty(rt, "uuid"), jsInvoker),
+      bridging::fromJs<decltype(types.supportsGestures)>(rt, value.getProperty(rt, "supportsGestures"), jsInvoker)};
+    return result;
+  }
+
+#ifdef DEBUG
+  static int nativeNodeHandleToJs(jsi::Runtime &rt, decltype(types.nativeNodeHandle) value) {
+    return bridging::toJs(rt, value);
+  }
+  static jsi::String uuidToJs(jsi::Runtime &rt, decltype(types.uuid) value) {
+    return bridging::toJs(rt, value);
+  }
+  static bool supportsGesturesToJs(jsi::Runtime &rt, decltype(types.supportsGestures) value) {
+    return bridging::toJs(rt, value);
+  }
+#endif
+
+  static jsi::Object toJs(
+      jsi::Runtime &rt,
+      const T &value,
+      const std::shared_ptr<CallInvoker> &jsInvoker) {
+    auto result = facebook::jsi::Object(rt);
+    if (value.nativeNodeHandle) {
+      result.setProperty(rt, "nativeNodeHandle", bridging::toJs(rt, value.nativeNodeHandle.value(), jsInvoker));
+    }
+    if (value.uuid) {
+      result.setProperty(rt, "uuid", bridging::toJs(rt, value.uuid.value(), jsInvoker));
+    }
+    if (value.supportsGestures) {
+      result.setProperty(rt, "supportsGestures", bridging::toJs(rt, value.supportsGestures.value(), jsInvoker));
+    }
+    return result;
+  }
+};
+
+
 template <typename T>
 class JSI_EXPORT NativeLayerPathColorRampCxxSpec : public TurboModule {
 public:
@@ -635,10 +832,19 @@ protected:
     methodMap_["createLayer"] = MethodMetadata {.argCount = 1, .invoker = __createLayer};
     methodMap_["removeLayer"] = MethodMetadata {.argCount = 1, .invoker = __removeLayer};
     methodMap_["applyEntryPriorities"] = MethodMetadata {.argCount = 1, .invoker = __applyEntryPriorities};
+    methodMap_["updateGestureScreenDistance"] = MethodMetadata {.argCount = 1, .invoker = __updateGestureScreenDistance};
+    methodMap_["updateSupportsGestures"] = MethodMetadata {.argCount = 1, .invoker = __updateSupportsGestures};
     methodMap_["addListener"] = MethodMetadata {.argCount = 1, .invoker = __addListener};
     methodMap_["removeListeners"] = MethodMetadata {.argCount = 1, .invoker = __removeListeners};
+    eventEmitterMap_["onPathColorRampEvent"] = std::make_shared<AsyncEventEmitter<jsi::Value>>();
   }
   
+  template <typename OnPathColorRampEventType> void emitOnPathColorRampEvent(OnPathColorRampEventType value) {
+    static_assert(bridging::supportsFromJs<OnPathColorRampEventType, jsi::Object>, "value cannnot be converted to jsi::Object");
+    static_cast<AsyncEventEmitter<jsi::Value>&>(*eventEmitterMap_["onPathColorRampEvent"]).emit([jsInvoker = jsInvoker_, eventValue = value](jsi::Runtime& rt) -> jsi::Value {
+      return bridging::toJs(rt, eventValue, jsInvoker);
+    });
+  }
 private:
   static jsi::Value __getConstants(jsi::Runtime &rt, TurboModule &turboModule, const jsi::Value* /*args*/, size_t /*count*/) {
     static_assert(
@@ -668,6 +874,22 @@ private:
       bridging::getParameterCount(&T::applyEntryPriorities) == 2,
       "Expected applyEntryPriorities(...) to have 2 parameters");
     return bridging::callFromJs<jsi::Value>(rt, &T::applyEntryPriorities,  static_cast<NativeLayerPathColorRampCxxSpec*>(&turboModule)->jsInvoker_, static_cast<T*>(&turboModule),
+      count <= 0 ? throw jsi::JSError(rt, "Expected argument in position 0 to be passed") : args[0].asObject(rt));
+  }
+
+  static jsi::Value __updateGestureScreenDistance(jsi::Runtime &rt, TurboModule &turboModule, const jsi::Value* args, size_t count) {
+    static_assert(
+      bridging::getParameterCount(&T::updateGestureScreenDistance) == 2,
+      "Expected updateGestureScreenDistance(...) to have 2 parameters");
+    return bridging::callFromJs<jsi::Value>(rt, &T::updateGestureScreenDistance,  static_cast<NativeLayerPathColorRampCxxSpec*>(&turboModule)->jsInvoker_, static_cast<T*>(&turboModule),
+      count <= 0 ? throw jsi::JSError(rt, "Expected argument in position 0 to be passed") : args[0].asObject(rt));
+  }
+
+  static jsi::Value __updateSupportsGestures(jsi::Runtime &rt, TurboModule &turboModule, const jsi::Value* args, size_t count) {
+    static_assert(
+      bridging::getParameterCount(&T::updateSupportsGestures) == 2,
+      "Expected updateSupportsGestures(...) to have 2 parameters");
+    return bridging::callFromJs<jsi::Value>(rt, &T::updateSupportsGestures,  static_cast<NativeLayerPathColorRampCxxSpec*>(&turboModule)->jsInvoker_, static_cast<T*>(&turboModule),
       count <= 0 ? throw jsi::JSError(rt, "Expected argument in position 0 to be passed") : args[0].asObject(rt));
   }
 

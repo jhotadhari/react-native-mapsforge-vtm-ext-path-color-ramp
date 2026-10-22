@@ -76,6 +76,7 @@ namespace JS {
       std::optional<facebook::react::LazyVector<NSString *>> colorRampStops() const;
       std::optional<double> blendRatio() const;
       std::optional<bool> supportsGestures() const;
+      std::optional<double> gestureScreenDistance() const;
       std::optional<JS::NativeLayerPathColorRamp::PathPaint> paint() const;
 
       CreateLayerParams(NSDictionary *const v) : _v(v) {}
@@ -136,6 +137,40 @@ namespace JS {
 
 @interface RCTCxxConvert (NativeLayerPathColorRamp_ApplyEntryPrioritiesParams)
 + (RCTManagedPointer *)JS_NativeLayerPathColorRamp_ApplyEntryPrioritiesParams:(id)json;
+@end
+namespace JS {
+  namespace NativeLayerPathColorRamp {
+    struct UpdateGestureScreenDistanceParams {
+      std::optional<double> nativeNodeHandle() const;
+      NSString *uuid() const;
+      std::optional<double> gestureScreenDistance() const;
+
+      UpdateGestureScreenDistanceParams(NSDictionary *const v) : _v(v) {}
+    private:
+      NSDictionary *_v;
+    };
+  }
+}
+
+@interface RCTCxxConvert (NativeLayerPathColorRamp_UpdateGestureScreenDistanceParams)
++ (RCTManagedPointer *)JS_NativeLayerPathColorRamp_UpdateGestureScreenDistanceParams:(id)json;
+@end
+namespace JS {
+  namespace NativeLayerPathColorRamp {
+    struct UpdateSupportsGesturesParams {
+      std::optional<double> nativeNodeHandle() const;
+      NSString *uuid() const;
+      std::optional<bool> supportsGestures() const;
+
+      UpdateSupportsGesturesParams(NSDictionary *const v) : _v(v) {}
+    private:
+      NSDictionary *_v;
+    };
+  }
+}
+
+@interface RCTCxxConvert (NativeLayerPathColorRamp_UpdateSupportsGesturesParams)
++ (RCTManagedPointer *)JS_NativeLayerPathColorRamp_UpdateSupportsGesturesParams:(id)json;
 @end
 namespace JS {
   namespace NativeLayerPathColorRamp {
@@ -244,6 +279,12 @@ namespace JS {
 - (void)applyEntryPriorities:(JS::NativeLayerPathColorRamp::ApplyEntryPrioritiesParams &)params
                      resolve:(RCTPromiseResolveBlock)resolve
                       reject:(RCTPromiseRejectBlock)reject;
+- (void)updateGestureScreenDistance:(JS::NativeLayerPathColorRamp::UpdateGestureScreenDistanceParams &)params
+                            resolve:(RCTPromiseResolveBlock)resolve
+                             reject:(RCTPromiseRejectBlock)reject;
+- (void)updateSupportsGestures:(JS::NativeLayerPathColorRamp::UpdateSupportsGesturesParams &)params
+                       resolve:(RCTPromiseResolveBlock)resolve
+                        reject:(RCTPromiseRejectBlock)reject;
 - (void)addListener:(NSString *)eventName;
 - (void)removeListeners:(double)count;
 - (facebook::react::ModuleConstants<JS::NativeLayerPathColorRamp::Constants>)constantsToExport;
@@ -257,7 +298,7 @@ facebook::react::EventEmitterCallback _eventEmitterCallback;
 }
 - (void)setEventEmitterCallback:(EventEmitterCallbackWrapper *)eventEmitterCallbackWrapper;
 
-
+- (void)emitOnPathColorRampEvent:(NSDictionary *)value;
 @end
 
 namespace facebook::react {
@@ -404,6 +445,11 @@ inline std::optional<bool> JS::NativeLayerPathColorRamp::CreateLayerParams::supp
   id const p = _v[@"supportsGestures"];
   return RCTBridgingToOptionalBool(p);
 }
+inline std::optional<double> JS::NativeLayerPathColorRamp::CreateLayerParams::gestureScreenDistance() const
+{
+  id const p = _v[@"gestureScreenDistance"];
+  return RCTBridgingToOptionalDouble(p);
+}
 inline std::optional<JS::NativeLayerPathColorRamp::PathPaint> JS::NativeLayerPathColorRamp::CreateLayerParams::paint() const
 {
   id const p = _v[@"paint"];
@@ -443,6 +489,36 @@ inline facebook::react::LazyVector<JS::NativeLayerPathColorRamp::EntryPriorityAs
 {
   id const p = _v[@"assignments"];
   return RCTBridgingToVec(p, ^JS::NativeLayerPathColorRamp::EntryPriorityAssignment(id itemValue_0) { return JS::NativeLayerPathColorRamp::EntryPriorityAssignment(itemValue_0); });
+}
+inline std::optional<double> JS::NativeLayerPathColorRamp::UpdateGestureScreenDistanceParams::nativeNodeHandle() const
+{
+  id const p = _v[@"nativeNodeHandle"];
+  return RCTBridgingToOptionalDouble(p);
+}
+inline NSString *JS::NativeLayerPathColorRamp::UpdateGestureScreenDistanceParams::uuid() const
+{
+  id const p = _v[@"uuid"];
+  return RCTBridgingToOptionalString(p);
+}
+inline std::optional<double> JS::NativeLayerPathColorRamp::UpdateGestureScreenDistanceParams::gestureScreenDistance() const
+{
+  id const p = _v[@"gestureScreenDistance"];
+  return RCTBridgingToOptionalDouble(p);
+}
+inline std::optional<double> JS::NativeLayerPathColorRamp::UpdateSupportsGesturesParams::nativeNodeHandle() const
+{
+  id const p = _v[@"nativeNodeHandle"];
+  return RCTBridgingToOptionalDouble(p);
+}
+inline NSString *JS::NativeLayerPathColorRamp::UpdateSupportsGesturesParams::uuid() const
+{
+  id const p = _v[@"uuid"];
+  return RCTBridgingToOptionalString(p);
+}
+inline std::optional<bool> JS::NativeLayerPathColorRamp::UpdateSupportsGesturesParams::supportsGestures() const
+{
+  id const p = _v[@"supportsGestures"];
+  return RCTBridgingToOptionalBool(p);
 }
 inline JS::NativeLayerPathColorRamp::ConstantsPaint::Builder::Builder(const Input i) : _factory(^{
   NSMutableDictionary *d = [NSMutableDictionary new];

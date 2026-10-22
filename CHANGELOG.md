@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Gesture support on `LayerPathColorRamp`** — new `onPress`, `onLongPress`,
+  `onDoubleTap` and `onTrigger` props plus `gestureScreenDistance`. Wired to the
+  inherited `VectorLayer` hit-testing (JTS distance against the rendered
+  color-ramp drawables); gesture payloads (`type`, `distance`, `nearestPoint`,
+  `eventPosition`) are emitted to JS via a new `onPathColorRampEvent` event
+  (hand-implemented `RCTDeviceEventEmitter` emission, since the TurboModule
+  spec is bypassed on RN 0.86). `updateSupportsGestures` /
+  `updateGestureScreenDistance` module methods mirror the core `LayerPath`
+  contract.
+
 ### Changed
 
 - **Downgraded expected-transient logs** — `ColorRampPathLayerManager.applyEntryPriorities`
