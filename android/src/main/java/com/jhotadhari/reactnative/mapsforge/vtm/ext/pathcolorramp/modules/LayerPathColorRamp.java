@@ -16,6 +16,7 @@ import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.turbomodule.core.interfaces.TurboModule;
 import com.jhotadhari.reactnative.mapsforge.vtm.PathLayerManager;
 import com.jhotadhari.reactnative.mapsforge.vtm.Utils;
@@ -213,6 +214,15 @@ public class LayerPathColorRamp extends ReactContextBaseJavaModule implements Tu
             ColorRampPathLayerManager manager =
                     createPathLayerManager(nativeNodeHandle, mapView);
 
+            // Wire gesture events: the inherited VectorLayer hit-testing
+            // emits "onPathEvent" payloads through the manager's event
+            // callback (mirrors core LayerPath.java).
+            manager.setEventCallback((eventName, payload) -> {
+                if ("onPathEvent".equals(eventName)) {
+                    emitOnPathEvent(payload);
+                }
+            });
+
             manager.create(uuid, fragmentUuid, params, mapFragment,
                     mapFragment.getActivity().getContentResolver(),
                     getReactApplicationContext());
@@ -249,7 +259,10 @@ public class LayerPathColorRamp extends ReactContextBaseJavaModule implements Tu
             ColorRampPathLayerManager manager =
                     ColorRampPathLayerManager.getInstance(nativeNodeHandle);
             if (manager == null) {
-                Log.w(TAG,
+                // Expected teardown race: the map fragment was destroyed
+                // before a pending removeLayer arrived. The core modules
+                // resolve silently here; keep this at debug level.
+                Log.d(TAG,
                     "ZOMBIE: getInstance returned null for nativeNodeHandle="
                         + nativeNodeHandle + " uuid=" + uuid
                         + " — manager was destroyed"
@@ -298,6 +311,79 @@ public class LayerPathColorRamp extends ReactContextBaseJavaModule implements Tu
             promise.resolve(null);
         } catch (Exception e) {
             e.printStackTrace();
+            Utils.promiseReject(promise, e.getMessage());
+        }
+    }
+
+    // ── Gesture events / updates ────────────────────────────────────────
+
+    /**
+     * Emits a gesture payload to JS. Hand-implemented because the
+     * generated TurboModule spec is bypassed for RN 0.86 (see AGENTS.md) —
+     * codegen would otherwise provide {@code emitOnPathColorRampEvent}.
+     * The event name must match the {@code onPathColorRampEvent}
+     * EventEmitter declared in the TS spec.
+     */
+    protected void emitOnPathEvent(@NonNull WritableMap payload) {
+        getReactApplicationContext()
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("onPathColorRampEvent", payload);
+    }
+
+    @ReactMethod
+    public void updateSupportsGestures(ReadableMap params, Promise promise) {
+        try {
+            if (!Utils.rMapHasKey(params, "nativeNodeHandle")
+                    || !Utils.rMapHasKey(params, "uuid")) {
+                Utils.promiseReject(promise,
+                        "Undefined nativeNodeHandle or uuid");
+                return;
+            }
+            String uuid = params.getString("uuid");
+            int nativeNodeHandle = params.getInt("nativeNodeHandle");
+            boolean supportsGestures = Utils.rMapHasKey(params, "supportsGestures")
+                    && params.getBoolean("supportsGestures");
+
+            ColorRampPathLayerManager manager =
+                    ColorRampPathLayerManager.getInstance(nativeNodeHandle);
+            if (manager != null) {
+                manager.updateSupportsGestures(uuid, supportsGestures);
+            }
+
+            WritableMap responseParams = new WritableNativeMap();
+            responseParams.putString("uuid", uuid);
+            promise.resolve(responseParams);
+        } catch (Exception e) {
+            Utils.promiseReject(promise, e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void updateGestureScreenDistance(ReadableMap params, Promise promise) {
+        try {
+            if (!Utils.rMapHasKey(params, "nativeNodeHandle")
+                    || !Utils.rMapHasKey(params, "uuid")) {
+                Utils.promiseReject(promise,
+                        "Undefined nativeNodeHandle or uuid");
+                return;
+            }
+            String uuid = params.getString("uuid");
+            int nativeNodeHandle = params.getInt("nativeNodeHandle");
+            double gestureScreenDistance = Utils.rMapHasKey(params, "gestureScreenDistance")
+                    ? params.getDouble("gestureScreenDistance")
+                    : 30d;
+
+            ColorRampPathLayerManager manager =
+                    ColorRampPathLayerManager.getInstance(nativeNodeHandle);
+            if (manager != null) {
+                manager.updateGestureScreenDistance(
+                        uuid, (float) gestureScreenDistance);
+            }
+
+            WritableMap responseParams = new WritableNativeMap();
+            responseParams.putString("uuid", uuid);
+            promise.resolve(responseParams);
+        } catch (Exception e) {
             Utils.promiseReject(promise, e.getMessage());
         }
     }

@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-10-22
+
+### Added
+
+- **Gesture support on `LayerPathColorRamp`** — new `onPress`, `onLongPress`,
+  `onDoubleTap` and `onTrigger` props plus `gestureScreenDistance`. Wired to the
+  inherited `VectorLayer` hit-testing (JTS distance against the rendered
+  color-ramp drawables); gesture payloads (`type`, `distance`, `nearestPoint`,
+  `eventPosition`) are emitted to JS via a new `onPathColorRampEvent` event
+  (hand-implemented `RCTDeviceEventEmitter` emission, since the TurboModule
+  spec is bypassed on RN 0.86). `updateSupportsGestures` /
+  `updateGestureScreenDistance` module methods mirror the core `LayerPath`
+  contract.
+
+### Changed
+
+- **Downgraded expected-transient logs** — `ColorRampPathLayerManager.applyEntryPriorities`
+  no longer warns when a fragment's native layer isn't created yet (normal during run re-keys —
+  the JS scene presenter re-sends on the next mutation), and `LayerPathColorRamp.removeLayer`
+  logs the manager-destroyed teardown race at debug instead of warning. Both were expected
+  transients, not zombie leaks.
+
 ## [0.2.0] - 2026-09-24
 
 ### Added
@@ -59,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 First version
 
+[0.3.0]: https://github.com/jhotadhari/react-native-mapsforge-vtm-ext-path-color-ramp/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/jhotadhari/react-native-mapsforge-vtm-ext-path-color-ramp/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/jhotadhari/react-native-mapsforge-vtm-ext-path-color-ramp/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/jhotadhari/react-native-mapsforge-vtm-ext-path-color-ramp/compare/v0.0.1...v0.1.0
